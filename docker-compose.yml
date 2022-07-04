@@ -1,0 +1,26 @@
+version: "3"
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+  web:
+    build: .
+    env_file: .env
+    stdin_open: true
+    tty: true
+    command: bash -c "mix ecto.migrate && iex -S mix phx.server"
+    volumes:
+      - .:/app
+    ports:
+      - "4000:4000"
+    depends_on:
+        - db
+
+volumes:
+  pgdata:
+

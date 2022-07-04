@@ -1,0 +1,26 @@
+<h1>Show Expression</h1>
+
+<%= if @live_action in [:edit] do %>
+  <.modal return_to={Routes.expression_show_path(@socket, :show, @expression)}>
+    <.live_component
+      module={VisionsUniteWeb.ExpressionLive.FormComponent}
+      id={@expression.id}
+      title={@page_title}
+      action={@live_action}
+      expression={@expression}
+      return_to={Routes.expression_show_path(@socket, :show, @expression)}
+    />
+  </.modal>
+<% end %>
+
+<ul>
+
+  <li>
+    <strong>Body:</strong>
+    <%= @expression.body %>
+  </li>
+
+</ul>
+
+<span><%= live_patch "Edit", to: Routes.expression_show_path(@socket, :edit, @expression), class: "button" %></span> |
+<span><%= live_redirect "Back", to: Routes.expression_index_path(@socket, :index) %></span>

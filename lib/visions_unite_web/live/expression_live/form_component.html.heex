@@ -1,0 +1,42 @@
+<div>
+  <h2><%= @title %></h2>
+
+  <.form
+    let={f}
+    for={@changeset}
+    id="expression-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save">
+  
+    <%= label f, :body %>
+    <%= textarea f, :body %>
+    <%= error_tag f, :body %>
+
+    <%= if Enum.count(@subscribed_expressions) != 0 do %>
+      <strong>Linked Expressions:</strong>
+      <%= for expression <- @expression.parents do %>
+        <div>
+          <%= expression.body %> <small phx-click="remove_parent" phx-value-parent_id={expression.id}>remove</small>
+        </div>
+      <% end %>
+    <% end %>
+
+    <div>
+      <%= submit "Save", phx_disable_with: "Saving..." %>
+    </div>
+  </.form>
+
+  <%= if Enum.count(@supported_expressions) != 0 or Enum.count(@my_expressions) != 0 do %>
+    <%= for expression <- Enum.uniq_by(Enum.concat(@my_expressions, @supported_expressions), & &1.id) do %>
+      <input type="checkbox" phx-target={@myself} phx-click="toggle_parent_expressions" phx-value-id={expression.id} { if !is_nil(Enum.find(@parents, & &1 == inspect expression.id)) do [checked: "checked"] else [] end } /> <%= expression.body %>
+    <% end %>
+  <% end %>
+  
+  <br>
+
+  <small>
+    NOTE: Expressions need to be supported by <%= @quorum_needed %> random users before they are sent to <%= @audience %>, because the system currently is set to: <%= System.get_env("SORTITION_PERCENT") %>% of the users (there are <%= VisionsUnite.Accounts.count_users() %> total users) being a sortition, and out of that sortition, <%= System.get_env("QUORUM_PERCENT") %>% must support the expression.
+  </small>
+</div>
+
