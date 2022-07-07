@@ -181,7 +181,7 @@ defmodule VisionsUnite.Expressions do
 
   def is_expression_fully_supported(expression, quorum) do
     query = from e in Support, where: e.expression_id == ^expression.id
-    aggregate = Repo.aggregate(query, :avg, :support)
+    aggregate = Repo.aggregate(query, :sum, :support)
     case aggregate do
       nil ->
         false

@@ -25,7 +25,7 @@
       <%= for expression <- @seeking_support do %>
         <tr id={"seeking-support-expression-#{expression.id}"}>
           <td>
-            <ExpressionComponent.expression expression={expression} quorum_needed={@quorum_needed} />
+            <ExpressionComponent.expression expression={expression} />
           </td>
 
           <td>
