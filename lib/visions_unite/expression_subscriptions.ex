@@ -32,7 +32,7 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   """
   def list_expression_subscriptions_for_expression(expression_id) do
-    query = from ep in ExpressionSubscription, where: ep.expression_id == ^expression_id
+    query = from es in ExpressionSubscription, where: es.expression_id == ^expression_id
     Repo.all(query)
   end
 
@@ -46,7 +46,7 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   """
   def list_expression_subscriptions_for_user(user_id) do
-    query = from ep in ExpressionSubscription, where: ep.user_id == ^user_id
+    query = from es in ExpressionSubscription, where: es.user_id == ^user_id
     Repo.all(query)
   end
 

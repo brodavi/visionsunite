@@ -13,7 +13,7 @@
     <%= textarea f, :body %>
     <%= error_tag f, :body %>
 
-    <%= if Enum.count(@subscribed_expressions) != 0 do %>
+    <%= if Enum.count(@my_subscriptions) != 0 do %>
       <strong>Linked Expressions:</strong>
       <%= for expression <- @expression.parents do %>
         <div>

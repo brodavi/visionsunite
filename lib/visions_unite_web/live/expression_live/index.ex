@@ -17,13 +17,17 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     end
 
     user_id = session["current_user_id"]
+
+    my_expressions = list_my_expressions(user_id)
+    my_subscriptions = MapSet.to_list(MapSet.difference(MapSet.new(list_my_subscriptions(user_id)), MapSet.new(my_expressions)))
+
     socket =
       socket
       |> assign(:quorum_needed, SeekingSupports.get_quorum_num())
       |> assign(:audience, "everyone")
       |> assign(:current_user_id, user_id)
-      |> assign(:subscribed_expressions, list_my_subscriptions(user_id))
-      |> assign(:my_expressions, list_my_expressions(user_id))
+      |> assign(:my_expressions, my_expressions)
+      |> assign(:my_subscriptions, my_subscriptions)
       |> assign(:supported_expressions, list_fully_supported_expressions())
       |> assign(:seeking_support, list_expressions_seeking_my_support(user_id))
     {:ok, socket}
@@ -69,29 +73,19 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     socket =
       socket
       |> put_flash(:info, "Successfully #{actioned} expression. Thank you!")
-      |> assign(:seeking_support, Expressions.list_expressions_seeking_support_from_user(socket.assigns.current_user_id))
+      |> assign(:seeking_support, list_expressions_seeking_my_support(socket.assigns.current_user_id))
     {:noreply, socket}
   end
 
   @impl true
-  def handle_event("object", %{"expression_id" => expression_id}, socket) do
-    Supports.create_support(%{ expression_id: expression_id, user_id: socket.assigns.current_user_id, support: -1 })
+  def handle_event("subscribe", %{"expression_id" => expression_id}, socket) do
+    ExpressionSubscriptions.create_expression_subscription(%{ expression_id: expression_id, user_id: socket.assigns.current_user_id })
 
     socket =
       socket
-      |> put_flash(:info, "Successfully objected to expression. Thank you!")
-      |> assign(:seeking_support, Expressions.list_expressions_seeking_support_from_user(socket.assigns.current_user_id))
+      |> put_flash(:info, "Successfully subscribed to expression. Thank you!")
+      |> assign(:my_subscriptions, list_my_subscriptions(socket.assigns.current_user_id))
     {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("add_parent", %{"expression_id" => expression_id}, _socket) do
-    IO.puts "add a parent: #{inspect expression_id}"
-  end
-
-  @impl true
-  def handle_event("remove_parent", %{"expression_id" => expression_id}, _socket) do
-    IO.puts "remove a parent: #{inspect expression_id}"
   end
 
   @impl true
@@ -147,7 +141,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   end
 
   defp list_my_subscriptions(id) do
-    ExpressionSubscriptions.list_expression_subscriptions_for_user(id)
+    Expressions.list_subscribed_expressions_for_user(id)
     |> annotate_with_supports_and_parents()
   end
 

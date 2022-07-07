@@ -1,4 +1,14 @@
 defmodule VisionsUnite.SeekingSupports do
+
+  # some app configurations
+  @sortition_percent_or_fixed System.get_env("SORTITION_PERCENT_OR_FIXED")
+  @sortition_percent String.to_integer(System.get_env("SORTITION_PERCENT"))
+  @sortition_fixed String.to_integer(System.get_env("SORTITION_FIXED"))
+  @sortition_max 384 # see https://surveysystem.com/sscalc.htm
+  @quorum_percent_or_fixed System.get_env("QUORUM_PERCENT_OR_FIXED")
+  @quorum_percent String.to_integer(System.get_env("QUORUM_PERCENT"))
+  @quorum_fixed String.to_integer(System.get_env("QUORUM_FIXED"))
+
   @moduledoc """
   The SeekingSupport context.
   """
@@ -122,25 +132,27 @@ defmodule VisionsUnite.SeekingSupports do
   defp get_sortition_num do
     users_count = Accounts.count_users()
 
-    case System.get_env("SORTITION_PERCENT_OR_FIXED") do
+    case @sortition_percent_or_fixed do
       "PERCENT" ->
-        percent = String.to_integer(System.get_env("SORTITION_PERCENT"))
+        percent = @sortition_percent
 
-        users_count * percent * 0.01
+        # If the group is large enough, then ignore sortition percentages,
+        # and just use the statistical relevance via https://surveysystem.com/sscalc.htm
+        Kernel.min(users_count * percent * 0.01, @sortition_max)
       "FIXED" ->
-        String.to_integer(System.get_env("SORTITION_FIXED"))
+        @sortition_fixed
     end
   end
 
   def get_quorum_num do
-    case System.get_env("QUORUM_PERCENT_OR_FIXED") do
+    case @quorum_percent_or_fixed do
       "PERCENT" ->
-        percent = String.to_integer(System.get_env("QUORUM_PERCENT"))
+        percent = @quorum_percent
 
         sortition_num = get_sortition_num()
         Kernel.round(sortition_num * percent * 0.01)
       "FIXED" ->
-        String.to_integer(System.get_env("QUORUM_FIXED"))
+        @quorum_fixed
     end
   end
 end

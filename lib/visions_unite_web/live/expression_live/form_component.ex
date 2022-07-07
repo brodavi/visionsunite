@@ -3,6 +3,7 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
 
   alias VisionsUnite.Expressions
   alias VisionsUnite.ExpressionParentages
+  alias VisionsUnite.ExpressionSubscriptions
 
   @impl true
   def update(%{expression: expression} = assigns, socket) do
@@ -73,6 +74,12 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
             parent_id: parent
           })
         end)
+
+        # Go ahead and subscribe to my own expression
+        ExpressionSubscriptions.create_expression_subscription(%{
+          expression_id: expression.id,
+          user_id: socket.assigns.current_user_id
+        })
 
         {:noreply,
          socket

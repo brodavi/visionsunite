@@ -6,7 +6,7 @@
       title={@page_title}
       action={@live_action}
       expression={@expression}
-      subscribed_expressions={@subscribed_expressions}
+      my_subscriptions={@my_subscriptions}
       supported_expressions={@supported_expressions}
       my_expressions={@my_expressions}
       audience={@audience}
@@ -56,6 +56,21 @@
   </table>
 <% end %>
 
+<%= if Enum.count(@my_subscriptions) != 0 do %>
+  <b>My Subscriptions</b>
+  <table>
+    <tbody id="my-subscriptions">
+      <%= for expression <- @my_subscriptions do %>
+        <tr id={"my-expression-#{expression.id}"}>
+          <td>
+            <ExpressionComponent.expression expression={expression} />
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
 <hr>
 
 <%= if Enum.count(@supported_expressions) != 0 do %>
@@ -66,7 +81,7 @@
       <%= for expression <- @supported_expressions do %>
         <tr id={"supported-expression-#{expression.id}"}>
           <td>
-            <ExpressionComponent.expression expression={expression} quorum_needed={@quorum_needed} />
+            <ExpressionComponent.expression expression={expression} quorum_needed={@quorum_needed} show_subscribe={true} />
           </td>
         </tr>
       <% end %>

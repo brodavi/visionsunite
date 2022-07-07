@@ -11,6 +11,7 @@ defmodule VisionsUnite.Expressions do
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.SeekingSupports.SeekingSupport
+  alias VisionsUnite.ExpressionSubscriptions.ExpressionSubscription
 
   @doc """
   Returns the list of expressions.
@@ -71,6 +72,21 @@ defmodule VisionsUnite.Expressions do
   """
   def list_expressions_seeking_support_from_user(user_id) do
     query = from i in Expression, join: se in SeekingSupport, on: i.id == se.expression_id, where: se.user_id == ^user_id
+    Repo.all(query)
+    |> Repo.preload(:parents)
+  end
+
+  @doc """
+  Returns the list of expressions subscribed by a particular user.
+
+  ## Examples
+
+      iex> list_subscribed_expressions_for_user(user_id)
+      [%Expression{}, ...]
+
+  """
+  def list_subscribed_expressions_for_user(user_id) do
+    query = from i in Expression, join: es in ExpressionSubscription, on: i.id == es.expression_id, where: es.user_id == ^user_id
     Repo.all(query)
     |> Repo.preload(:parents)
   end
