@@ -15,9 +15,10 @@ defmodule VisionsUnite.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: VisionsUnite.PubSub},
       # Start the Endpoint (http/https)
-      VisionsUniteWeb.Endpoint
+      VisionsUniteWeb.Endpoint,
       # Start a worker by calling: VisionsUnite.Worker.start_link(arg)
       # {VisionsUnite.Worker, arg}
+      {Task.Supervisor, name: VisionsUnite.MySupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

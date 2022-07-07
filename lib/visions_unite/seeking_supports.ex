@@ -96,7 +96,17 @@ defmodule VisionsUnite.SeekingSupports do
       })
     end)
 
-    VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression |> Repo.preload(:parents)}, :sortition_created, "sortitions")
+    # The reason we're putting this task in the supervisor is that when the expression
+    #   is created, the sortition gets called. Then seeking supports is called. Then
+    #   without the supervisor, the :sortition_created message is broadcast... and
+    #   THEN, in the calling code (form_component) the expression parentage is
+    #   created. So by putting this in the supervisor, it just waits 1 second before
+    #   finally sending the broadcast.
+    Task.Supervisor.start_child(VisionsUnite.MySupervisor, fn ->
+      :timer.sleep(1000)
+      VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :sortition_created, "sortitions")
+    end)
+
   end
 
   @doc """

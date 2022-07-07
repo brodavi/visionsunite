@@ -36,8 +36,9 @@ defmodule VisionsUnite.Expressions do
       [%Expression{}, ...]
 
   """
-  def list_fully_supported_expressions do
-    expressions = Repo.all(Expression)
+  def list_fully_supported_expressions(user_id) do
+    query = from e in Expression, where: e.author_id != ^user_id
+    expressions = Repo.all(query)
     quorum = SeekingSupports.get_quorum_num()
     expressions
     |> Enum.filter(fn expression ->
@@ -127,8 +128,9 @@ defmodule VisionsUnite.Expressions do
       %Expression{}
       |> Expression.changeset(attrs)
       |> Repo.insert()
-      |> VisionsUniteWeb.SharedPubSub.broadcast(:expression_created, "expressions")
+
     SeekingSupports.seek_supporters(expression)
+
     expression
   end
 

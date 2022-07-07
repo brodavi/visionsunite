@@ -28,7 +28,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
       |> assign(:current_user_id, user_id)
       |> assign(:my_expressions, my_expressions)
       |> assign(:my_subscriptions, my_subscriptions)
-      |> assign(:supported_expressions, list_fully_supported_expressions())
+      |> assign(:supported_expressions, list_fully_supported_expressions(user_id))
       |> assign(:seeking_support, list_expressions_seeking_my_support(user_id))
     {:ok, socket}
   end
@@ -81,10 +81,16 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   def handle_event("subscribe", %{"expression_id" => expression_id}, socket) do
     ExpressionSubscriptions.create_expression_subscription(%{ expression_id: expression_id, user_id: socket.assigns.current_user_id })
 
+
+    my_expressions = list_my_expressions(socket.assigns.current_user_id)
+    my_subscriptions = MapSet.to_list(MapSet.difference(MapSet.new(list_my_subscriptions(socket.assigns.current_user_id)), MapSet.new(my_expressions)))
+    supported_expressions = MapSet.to_list(MapSet.difference(MapSet.new(list_fully_supported_expressions(socket.assigns.current_user_id)), MapSet.new(my_expressions)))
+
     socket =
       socket
       |> put_flash(:info, "Successfully subscribed to expression. Thank you!")
-      |> assign(:my_subscriptions, list_my_subscriptions(socket.assigns.current_user_id))
+      |> assign(:my_subscriptions, my_subscriptions)
+      |> assign(:supported_expressions, supported_expressions)
     {:noreply, socket}
   end
 
@@ -107,7 +113,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     if Enum.find(sortition, & &1.user_id == socket.assigns.current_user_id) do
       socket =
         socket
-        |> assign(seeking_support: [expression |> annotate_with_supports_and_parents | socket.assigns.seeking_support])
+        |> assign(seeking_support: [expression | socket.assigns.seeking_support])
       {:noreply, socket}
     else
       {:noreply, socket}
@@ -135,8 +141,8 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     |> annotate_with_supports_and_parents()
   end
 
-  defp list_fully_supported_expressions do
-    Expressions.list_fully_supported_expressions()
+  defp list_fully_supported_expressions(id) do
+    Expressions.list_fully_supported_expressions(id)
     |> annotate_with_supports_and_parents()
   end
 
@@ -153,12 +159,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   defp annotate_with_supports_and_parents(expressions) when is_list(expressions) do
     expressions
     |> Enum.map(fn expression ->
-      %{
-        id: expression.id,
-        body: expression.body,
-        support: Enum.count(Supports.list_support_for_expression(expression)),
-        parents: Enum.map(expression.parents, & &1.body)
-      }
+      annotate_with_supports_and_parents(expression)
     end)
   end
 
