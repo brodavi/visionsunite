@@ -99,7 +99,6 @@ defmodule VisionsUnite.Supports do
     existing_seeking_support = SeekingSupports.get_seeking_support_for_expression_and_user!(expression, user)
     SeekingSupports.delete_seeking_support(existing_seeking_support)
 
-
     # Seeking Support has been deleted.... now we check for support
     quorum = SeekingSupports.get_quorum_num()
     if Expressions.is_expression_fully_supported(expression, quorum) do
@@ -108,6 +107,8 @@ defmodule VisionsUnite.Supports do
       SeekingSupports.delete_all_seeking_support_for_expression(expression)
       # then broadcast the support for all users
       VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :expression_fully_supported, "support")
+      # also, mark the expression as fully supported, because more users will screw up whether or not it is indeed
+      Expressions.mark_fully_supported(expression)
     end
 
     # broadcast to everyone that an expression has been supported, regardless

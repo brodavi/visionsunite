@@ -153,6 +153,21 @@ defmodule VisionsUnite.Expressions do
   end
 
   @doc """
+  Marks an expression as fully supported
+
+  ## Examples
+
+      iex> mark_fully_supported(expression)
+      {:ok, %Expression{}}
+
+  """
+  def mark_fully_supported(%Expression{} = expression) do
+    expression
+    |> Expression.changeset(%{ fully_supported: true })
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes a expression.
 
   ## Examples

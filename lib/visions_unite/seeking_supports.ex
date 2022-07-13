@@ -90,6 +90,7 @@ defmodule VisionsUnite.SeekingSupports do
 
     sortition
     |> Enum.each(fn user_id ->
+      # TODO seek support one at a time, according to temperature?, not all at once
       create_seeking_support(%{
         expression_id: expression.id,
         user_id: user_id

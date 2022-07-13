@@ -1,8 +1,27 @@
 /* This file is for your main application CSS */
 @import "./phoenix.css";
 
+html {
+  background: #222222;
+}
+
+body {
+  color: #dddddd;
+}
+
+header {
+  background: #222222;
+}
+
 textarea {
   height: 400px;
+}
+
+button {
+  line-height: 0.66rem;
+  height: 2rem;
+  padding: 0.66rem;
+  font-size: 0.66rem;
 }
 
 /* Alerts and form errors used by phx.new */
