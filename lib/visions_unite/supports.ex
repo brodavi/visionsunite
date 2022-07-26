@@ -34,7 +34,9 @@ defmodule VisionsUnite.Supports do
 
   """
   def list_support_for_expression(expression) do
-    query = from e in Support, where: e.expression_id == ^expression.id and e.support >= 0.0
+    query = from e in Support,
+      where: e.expression_id == ^expression.id and e.support >= 0.0
+
     Repo.all(query)
   end
 
@@ -51,7 +53,11 @@ defmodule VisionsUnite.Supports do
 
   """
   def get_latest_support_for_expression(expression) do
-    query = from e in Support, where: e.expression_id == ^expression.id and e.support >= 0.0, order_by: e.inserted_at, limit: 1
+    query = from e in Support,
+      where: e.expression_id == ^expression.id and e.support >= 0.0,
+      order_by: e.inserted_at,
+      limit: 1
+
     Repo.all(query)
     |> Enum.map(& &1.inserted_at)
     |> List.first()
@@ -100,13 +106,16 @@ defmodule VisionsUnite.Supports do
     SeekingSupports.delete_seeking_support(existing_seeking_support)
 
     # Seeking Support has been deleted.... now we check for support
-    quorum = SeekingSupports.get_quorum_num()
+    quorum = SeekingSupports.get_quorum_num_for_expression(expression)
+
     if Expressions.is_expression_fully_supported(expression, quorum) do
       # if expression has been fully supported, remove ALL seeking support
       # because the goal has already been reached
       SeekingSupports.delete_all_seeking_support_for_expression(expression)
+
       # then broadcast the support for all users
       VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :expression_fully_supported, "support")
+
       # also, mark the expression as fully supported, because more users will screw up whether or not it is indeed
       Expressions.mark_fully_supported(expression)
     end

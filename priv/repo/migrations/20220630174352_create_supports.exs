@@ -5,7 +5,7 @@ defmodule VisionsUnite.Repo.Migrations.CreateSupports do
     create table(:supports) do
       add :support, :float
       add :user_id, references(:users, on_delete: :nothing)
-      add :expression_id, references(:expressions, on_delete: :nothing)
+      add :expression_id, references(:expressions, on_delete: :delete_all)
 
       timestamps()
     end

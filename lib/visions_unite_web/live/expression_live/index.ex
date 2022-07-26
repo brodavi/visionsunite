@@ -1,6 +1,7 @@
 defmodule VisionsUniteWeb.ExpressionLive.Index do
   use VisionsUniteWeb, :live_view
 
+  alias VisionsUnite.Accounts
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Supports
   alias VisionsUnite.Expressions
@@ -18,17 +19,13 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
     user_id = session["current_user_id"]
 
-    my_expressions = list_my_expressions(user_id)
-    my_subscriptions = MapSet.to_list(MapSet.difference(MapSet.new(list_my_subscriptions(user_id)), MapSet.new(my_expressions)))
-
     socket =
       socket
-      |> assign(:quorum_needed, SeekingSupports.get_quorum_num())
       |> assign(:audience, "everyone")
       |> assign(:current_user_id, user_id)
-      |> assign(:my_expressions, my_expressions)
-      |> assign(:my_subscriptions, my_subscriptions)
-      |> assign(:supported_expressions, list_fully_supported_expressions(user_id))
+      |> assign(:my_expressions, list_my_expressions(user_id))
+      |> assign(:my_subscriptions, list_my_subscriptions(user_id))
+      |> assign(:fully_supported_expressions, list_fully_supported_expressions(user_id))
       |> assign(:seeking_support, list_expressions_seeking_my_support(user_id))
     {:ok, socket}
   end
@@ -81,16 +78,28 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   def handle_event("subscribe", %{"expression_id" => expression_id}, socket) do
     ExpressionSubscriptions.create_expression_subscription(%{ expression_id: expression_id, user_id: socket.assigns.current_user_id })
 
-
-    my_expressions = list_my_expressions(socket.assigns.current_user_id)
-    my_subscriptions = MapSet.to_list(MapSet.difference(MapSet.new(list_my_subscriptions(socket.assigns.current_user_id)), MapSet.new(my_expressions)))
-    supported_expressions = MapSet.to_list(MapSet.difference(MapSet.new(list_fully_supported_expressions(socket.assigns.current_user_id)), MapSet.new(my_expressions)))
+    user_id = socket.assigns.current_user_id
 
     socket =
       socket
       |> put_flash(:info, "Successfully subscribed to expression. Thank you!")
-      |> assign(:my_subscriptions, my_subscriptions)
-      |> assign(:supported_expressions, supported_expressions)
+      |> assign(:my_subscriptions, list_my_subscriptions(user_id))
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("unsubscribe", %{"expression_id" => expression_id}, socket) do
+    user_id = socket.assigns.current_user_id
+
+    expression_subscription =
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+
+    ExpressionSubscriptions.delete_expression_subscription(expression_subscription)
+
+    socket =
+      socket
+      |> put_flash(:info, "Successfully unsubscribed from expression.")
+      |> assign(:my_subscriptions, list_my_subscriptions(user_id))
     {:noreply, socket}
   end
 
@@ -109,6 +118,9 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   @impl true
   def handle_info({:sortition_created, expression}, socket) do
     sortition = SeekingSupports.list_support_sought_for_expression(expression)
+
+    expression =
+      annotate_with_supports_and_parents(expression)
 
     if Enum.find(sortition, & &1.user_id == socket.assigns.current_user_id) do
       socket =
@@ -132,7 +144,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     socket =
       socket
       |> assign(seeking_support: seeking_support)
-      |> assign(supported_expressions: [expression |> annotate_with_supports_and_parents | socket.assigns.supported_expressions])
+      |> assign(fully_supported_expressions: [expression |> annotate_with_supports_and_parents | socket.assigns.fully_supported_expressions])
     {:noreply, socket}
   end
 
@@ -154,6 +166,40 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   defp list_my_expressions(id) do
     Expressions.list_expressions_for_user(id)
     |> annotate_with_supports_and_parents()
+    |> annotate_with_quorum_and_group_count()
+  end
+
+  #
+  # This function annotates a list of expressions with each expression's quorum
+  # and group count. If the expression is a root expression, then the group count
+  # is the list of all the users in the system. If the expression is linked to
+  # other expressions, then there are multiple group counts per linked expression.
+  #
+
+  defp annotate_with_quorum_and_group_count(expressions) do
+    expressions
+    |> Enum.map(fn expression ->
+      quorum = SeekingSupports.get_quorum_num_for_expression(expression)
+      quorum = Kernel.max(quorum, 1)
+
+      group_count =
+        ExpressionSubscriptions.list_expression_subscriptions_for_expression(expression.id)
+        |> Enum.count()
+
+      group_count =
+        if group_count == 1 do
+          # If only one person is subscribed to this expression (the author), then ...
+          #  ... does it mean this is a root expression? wat?
+          Enum.count(Accounts.list_users())
+        else
+          group_count
+        end
+
+      Map.merge(expression, %{
+        quorum: quorum,
+        group_count: group_count
+      })
+    end)
   end
 
   defp annotate_with_supports_and_parents(expressions) when is_list(expressions) do
@@ -166,9 +212,10 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   defp annotate_with_supports_and_parents(expression) when is_map(expression) do
     %{
       id: expression.id,
+      title: expression.title,
       body: expression.body,
       support: Enum.count(Supports.list_support_for_expression(expression)),
-      parents: Enum.map(expression.parents, & &1.body)
+      parents: Enum.map(expression.parents, & &1.title)
     }
   end
 end

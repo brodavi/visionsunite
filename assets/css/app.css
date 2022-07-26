@@ -13,8 +13,13 @@ header {
   background: #222222;
 }
 
+input {
+  color: #eeeeee;
+}
+
 textarea {
   height: 400px;
+  color: #eeeeee;
 }
 
 button {
@@ -86,7 +91,7 @@ button {
 }
 
 .phx-modal-content {
-  background-color: #fefefe;
+  background-color: #222222;
   margin: 15vh auto;
   padding: 20px;
   border: 1px solid #888;

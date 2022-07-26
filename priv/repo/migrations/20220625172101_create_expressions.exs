@@ -3,7 +3,9 @@ defmodule VisionsUnite.Repo.Migrations.CreateExpressions do
 
   def change do
     create table(:expressions) do
-      add :body, :string
+      add :title, :string
+      add :body, :text
+      add :fully_supported, :naive_datetime
       add :temperature, :float
       add :author_id, references(:users, on_delete: :delete_all), null: false
 

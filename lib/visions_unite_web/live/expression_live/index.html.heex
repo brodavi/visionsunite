@@ -7,10 +7,8 @@
       action={@live_action}
       expression={@expression}
       my_subscriptions={@my_subscriptions}
-      supported_expressions={@supported_expressions}
       my_expressions={@my_expressions}
       audience={@audience}
-      quorum_needed={@quorum_needed}
       current_user_id={@current_user_id}
       return_to={Routes.expression_index_path(@socket, :index)}
     />
@@ -19,7 +17,6 @@
 
 <%= if Enum.count(@seeking_support) != 0 do %>
   <b>Expressions Seeking Your Support</b>
-
   <table>
     <tbody id="expressions-seeking-support">
       <%= for expression <- @seeking_support do %>
@@ -27,7 +24,6 @@
           <td>
             <ExpressionComponent.expression expression={expression} />
           </td>
-
           <td>
             <button phx-click="my_support" phx-value-support={1} phx-value-expression_id={expression.id}>I support</button>
             <button phx-click="my_support" phx-value-support={0} phx-value-expression_id={expression.id}>I do not support</button>
@@ -39,8 +35,6 @@
   </table>
 <% end %>
 
-<hr>
-
 <%= if Enum.count(@my_expressions) != 0 do %>
   <b>My Expressions</b>
   <table>
@@ -48,7 +42,7 @@
       <%= for expression <- @my_expressions do %>
         <tr id={"my-expression-#{expression.id}"}>
           <td>
-            <ExpressionComponent.expression expression={expression} quorum_needed={@quorum_needed} />
+            <ExpressionComponent.expression expression={expression} show_quorum_and_group_count={true} />
           </td>
         </tr>
       <% end %>
@@ -61,9 +55,9 @@
   <table>
     <tbody id="my-subscriptions">
       <%= for expression <- @my_subscriptions do %>
-        <tr id={"my-expression-#{expression.id}"}>
+        <tr id={"my-subscription-#{expression.id}"}>
           <td>
-            <ExpressionComponent.expression expression={expression} />
+            <ExpressionComponent.expression expression={expression} show_unsubscribe={true} />
           </td>
         </tr>
       <% end %>
@@ -71,25 +65,21 @@
   </table>
 <% end %>
 
-<hr>
-
-<%= if Enum.count(@supported_expressions) != 0 do %>
+<%= if Enum.count(@fully_supported_expressions) != 0 do %>
   <b>Fully Supported Expressions</b>
 
   <table>
     <tbody id="fully-supported-expressions">
-      <%= for expression <- @supported_expressions do %>
+      <%= for expression <- @fully_supported_expressions do %>
         <tr id={"supported-expression-#{expression.id}"}>
           <td>
-            <ExpressionComponent.expression expression={expression} quorum_needed={@quorum_needed} show_subscribe={true} />
+            <ExpressionComponent.expression expression={expression} show_subscribe={true} />
           </td>
         </tr>
       <% end %>
     </tbody>
   </table>
 <% end %>
-
-<hr>
 
 <%= live_patch to: Routes.expression_index_path(@socket, :new) do %>
   <button>

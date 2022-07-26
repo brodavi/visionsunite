@@ -9,8 +9,8 @@ defmodule VisionsUnite.Expressions do
 
   alias VisionsUnite.Supports.Support
   alias VisionsUnite.Expressions.Expression
-  alias VisionsUnite.SeekingSupports
   alias VisionsUnite.SeekingSupports.SeekingSupport
+  alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUnite.ExpressionSubscriptions.ExpressionSubscription
 
   @doc """
@@ -37,13 +37,27 @@ defmodule VisionsUnite.Expressions do
 
   """
   def list_fully_supported_expressions(user_id) do
-    query = from e in Expression, where: e.author_id != ^user_id
-    expressions = Repo.all(query)
-    quorum = SeekingSupports.get_quorum_num()
-    expressions
-    |> Enum.filter(fn expression ->
-      is_expression_fully_supported(expression, quorum)
-    end)
+    expression_subscriptions =
+      ExpressionSubscriptions.list_expression_subscriptions_for_user(user_id)
+      |> Enum.map(& &1.id)
+
+    # Get all fully supported root expressions
+    root_query = from e in Expression,
+      where: e.author_id != ^user_id and not is_nil(e.fully_supported)
+
+    root_expressions = Repo.all(root_query)
+
+    # Get all fully supported subscribed expressions
+    subscribed_query = from e in Expression,
+      where: e.author_id != ^user_id and not is_nil(e.fully_supported),
+      join: es in ExpressionSubscription,
+      on: es.id in ^expression_subscriptions,
+      where: es.user_id != ^user_id
+
+    subscribed_expressions = Repo.all(subscribed_query)
+
+    Enum.concat(root_expressions, subscribed_expressions)
+    |> Enum.uniq()
     |> Repo.preload(:parents)
   end
 
@@ -57,7 +71,8 @@ defmodule VisionsUnite.Expressions do
 
   """
   def list_expressions_for_user(user_id) do
-    query = from i in Expression, where: i.author_id == ^user_id
+    query = from i in Expression,
+      where: i.author_id == ^user_id
     Repo.all(query)
     |> Repo.preload(:parents)
   end
@@ -72,7 +87,11 @@ defmodule VisionsUnite.Expressions do
 
   """
   def list_expressions_seeking_support_from_user(user_id) do
-    query = from i in Expression, join: se in SeekingSupport, on: i.id == se.expression_id, where: se.user_id == ^user_id
+    query = from i in Expression,
+      join: se in SeekingSupport,
+      on: i.id == se.expression_id,
+      where: se.user_id == ^user_id
+
     Repo.all(query)
     |> Repo.preload(:parents)
   end
@@ -87,7 +106,11 @@ defmodule VisionsUnite.Expressions do
 
   """
   def list_subscribed_expressions_for_user(user_id) do
-    query = from i in Expression, join: es in ExpressionSubscription, on: i.id == es.expression_id, where: es.user_id == ^user_id
+    query = from e in Expression,
+      join: es in ExpressionSubscription,
+      on: e.id == es.expression_id,
+      where: es.user_id == ^user_id and e.author_id != ^user_id
+
     Repo.all(query)
     |> Repo.preload(:parents)
   end
@@ -124,14 +147,14 @@ defmodule VisionsUnite.Expressions do
 
   """
   def create_expression(attrs \\ %{}) do
-    expression =
+    {:ok, expression} =
       %Expression{}
       |> Expression.changeset(attrs)
       |> Repo.insert()
 
-    SeekingSupports.seek_supporters(expression)
-
-    expression
+    {:ok,
+      expression
+      |> Repo.preload([:parents])}
   end
 
   @doc """
@@ -163,7 +186,7 @@ defmodule VisionsUnite.Expressions do
   """
   def mark_fully_supported(%Expression{} = expression) do
     expression
-    |> Expression.changeset(%{ fully_supported: true })
+    |> Expression.changeset(%{ fully_supported: DateTime.utc_now() })
     |> Repo.update()
   end
 

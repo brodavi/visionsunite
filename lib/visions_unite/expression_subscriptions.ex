@@ -8,6 +8,7 @@ defmodule VisionsUnite.ExpressionSubscriptions do
   alias VisionsUnite.Repo
 
   alias VisionsUnite.ExpressionSubscriptions.ExpressionSubscription
+  alias VisionsUnite.Expressions.Expression
 
   @doc """
   Returns the list of expression_subscriptions.
@@ -32,8 +33,27 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   """
   def list_expression_subscriptions_for_expression(expression_id) do
-    query = from es in ExpressionSubscription, where: es.expression_id == ^expression_id
+    query = from es in ExpressionSubscription,
+      where: es.expression_id == ^expression_id
     Repo.all(query)
+  end
+
+  @doc """
+  Returns the list of expression_subscriptions for a particular expression by its name.
+
+  ## Examples
+
+      iex> list_expression_subscriptions_for_expression_by_name(expression_name)
+      [%ExpressionSubscription{}, ...]
+
+  """
+  def count_expression_subscriptions_for_expression_by_name(expression_title) do
+    query = from es in ExpressionSubscription,
+      join: e in Expression,
+      on: e.id == es.expression_id,
+      where: e.title == ^expression_title
+
+    Repo.aggregate(query, :count)
   end
 
   @doc """
@@ -65,6 +85,23 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   """
   def get_expression_subscription!(id), do: Repo.get!(ExpressionSubscription, id)
+
+  @doc """
+  Gets a single expression_subscription by given expression_id and user_id.
+
+  ## Examples
+
+      iex> get_expression_subscription_for_expression_and_user!(245, 123)
+      %ExpressionSubscription{}
+
+  """
+  def get_expression_subscription_for_expression_and_user(expression_id, user_id) do
+    query =
+      from es in ExpressionSubscription,
+      where: es.expression_id == ^expression_id and es.user_id == ^user_id
+
+    Repo.one(query)
+  end
 
   @doc """
   Creates a expression_subscription.
@@ -131,5 +168,4 @@ defmodule VisionsUnite.ExpressionSubscriptions do
     ExpressionSubscription.changeset(expression_subscription, attrs)
   end
 end
-
 

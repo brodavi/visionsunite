@@ -11,6 +11,36 @@ defmodule VisionsUnite.Accounts do
   ## Database getters
 
   @doc """
+  Just lists all users
+
+  ## Examples
+
+      iex> list_users()
+      [%User{}, ...]
+
+  """
+  def list_users do
+    query = from u in User
+    Repo.all(query)
+    |> Enum.filter(& &1.id != 1) # exclude default superuser
+  end
+
+  @doc """
+  Just lists all users' ids
+
+  ## Examples
+
+      iex> list_users_ids()
+      [23, 52, ...]
+
+  """
+  def list_users_ids do
+    query = from u in User, select: u.id
+    Repo.all(query)
+    |> Enum.filter(& &1 != 1) # exclude default superuser
+  end
+
+  @doc """
   Gives a count of all users in the system
 
   ## Examples
@@ -20,7 +50,7 @@ defmodule VisionsUnite.Accounts do
 
   """
   def count_users do
-    Repo.aggregate(User, :count)
+    Repo.aggregate(User, :count) - 1 # exclude default superuser
   end
 
   @doc """

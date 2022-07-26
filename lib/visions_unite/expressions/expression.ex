@@ -5,6 +5,7 @@ defmodule VisionsUnite.Expressions.Expression do
   alias VisionsUnite.ExpressionParentages.ExpressionParentage
 
   schema "expressions" do
+    field :title, :string
     field :body, :string
     field :temperature, :float
     field :fully_supported, :naive_datetime
@@ -19,8 +20,8 @@ defmodule VisionsUnite.Expressions.Expression do
   @doc false
   def changeset(expression, attrs) do
     expression
-    |> cast(attrs, [:body, :temperature, :author_id, :fully_supported])
-    |> validate_required([:body, :author_id])
+    |> cast(attrs, [:title, :body, :temperature, :author_id, :fully_supported])
+    |> validate_required([:title, :body, :author_id])
   end
 end
 

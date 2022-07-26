@@ -5,10 +5,14 @@ defmodule VisionsUniteWeb.ExpressionComponent do
     ~H"""
       <div>
         <div>
-          <%= @expression.body %>: supported by <%= @expression.support %> users
+          <%= @expression.title %>: supported by <%= @expression.support %> users <%= if Map.has_key?(assigns, :show_quorum_and_group_count) do "(#{@expression.quorum} out of #{@expression.group_count} needed)" end %>
 
           <%= if Map.has_key?(assigns, :show_subscribe) do %>
             <button phx-click="subscribe" phx-value-expression_id={@expression.id}>Subscribe</button>
+          <% end %>
+
+          <%= if Map.has_key?(assigns, :show_unsubscribe) do %>
+            <button phx-click="unsubscribe" phx-value-expression_id={@expression.id}>Unsubscribe</button>
           <% end %>
         </div>
 

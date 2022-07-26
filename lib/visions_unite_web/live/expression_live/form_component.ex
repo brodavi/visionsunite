@@ -4,6 +4,7 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
   alias VisionsUnite.Expressions
   alias VisionsUnite.ExpressionParentages
   alias VisionsUnite.ExpressionSubscriptions
+  alias VisionsUnite.SeekingSupports
 
   @impl true
   def update(%{expression: expression} = assigns, socket) do
@@ -12,7 +13,7 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(parents: expression.parents)
+     |> assign(:parents, expression.parents)
      |> assign(:changeset, changeset)}
   end
 
@@ -80,6 +81,9 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
           expression_id: expression.id,
           user_id: socket.assigns.current_user_id
         })
+
+        # Let's now seek supporters for this expression
+        SeekingSupports.seek_supporters(expression)
 
         {:noreply,
          socket

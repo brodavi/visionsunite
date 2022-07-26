@@ -18,6 +18,7 @@ defmodule VisionsUnite.Application do
       VisionsUniteWeb.Endpoint,
       # Start a worker by calling: VisionsUnite.Worker.start_link(arg)
       # {VisionsUnite.Worker, arg}
+      {Task, &VisionsUnite.StartupTasks.startup/0},
       {Task.Supervisor, name: VisionsUnite.MySupervisor}
     ]
 

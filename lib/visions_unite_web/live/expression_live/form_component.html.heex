@@ -9,7 +9,11 @@
     phx-change="validate"
     phx-submit="save">
   
-    <%= label f, :body %>
+    <%= label f, "Short Title" %>
+    <%= text_input f, :title %>
+    <%= error_tag f, :title %>
+
+    <%= label f, "Longer Description" %>
     <%= textarea f, :body %>
     <%= error_tag f, :body %>
 
@@ -17,7 +21,7 @@
       <strong>Linked Expressions:</strong>
       <%= for expression <- @expression.parents do %>
         <div>
-          <%= expression.body %> <small phx-click="remove_parent" phx-value-parent_id={expression.id}>remove</small>
+          <%= expression.title %> <small phx-click="remove_parent" phx-value-parent_id={expression.id}>remove</small>
         </div>
       <% end %>
     <% end %>
@@ -27,16 +31,10 @@
     </div>
   </.form>
 
-  <%= if Enum.count(@supported_expressions) != 0 or Enum.count(@my_expressions) != 0 do %>
-    <%= for expression <- Enum.uniq_by(Enum.concat(@my_expressions, @supported_expressions), & &1.id) do %>
-      <input type="checkbox" phx-target={@myself} phx-click="toggle_parent_expressions" phx-value-id={expression.id} { if !is_nil(Enum.find(@parents, & &1 == inspect expression.id)) do [checked: "checked"] else [] end } /> <%= expression.body %>
+  <%= if Enum.count(@my_subscriptions) != 0 or Enum.count(@my_expressions) != 0 do %>
+    <%= for expression <- Enum.uniq_by(Enum.concat(@my_expressions, @my_subscriptions), & &1.id) do %>
+      <input type="checkbox" phx-target={@myself} phx-click="toggle_parent_expressions" phx-value-id={expression.id} { if !is_nil(Enum.find(@parents, & &1 == inspect expression.id)) do [checked: "checked"] else [] end } /> <%= expression.title %>
     <% end %>
   <% end %>
-  
-  <br>
-
-  <small>
-    NOTE: Expressions need to be supported by <%= @quorum_needed %> random users before they are sent to <%= @audience %>, because the system currently is set to: <%= System.get_env("SORTITION_PERCENT") %>% of the users (there are <%= VisionsUnite.Accounts.count_users() %> total users) being a sortition, and out of that sortition, <%= System.get_env("QUORUM_PERCENT") %>% must support the expression.
-  </small>
 </div>
 
