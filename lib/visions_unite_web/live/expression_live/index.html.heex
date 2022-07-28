@@ -42,7 +42,7 @@
       <%= for expression <- @my_expressions do %>
         <tr id={"my-expression-#{expression.id}"}>
           <td>
-            <ExpressionComponent.expression expression={expression} show_quorum_and_group_count={true} />
+            <ExpressionComponent.expression expression={expression} show_quorum_and_group_count={is_nil(expression.fully_supported)} />
           </td>
         </tr>
       <% end %>

@@ -5,7 +5,10 @@ defmodule VisionsUniteWeb.ExpressionComponent do
     ~H"""
       <div>
         <div>
-          <%= @expression.title %>: supported by <%= @expression.support %> users <%= if Map.has_key?(assigns, :show_quorum_and_group_count) do "(#{@expression.quorum} out of #{@expression.group_count} needed)" end %>
+          <div><b><%= @expression.title %></b></div>
+          <%= for {link, idx} <- Enum.with_index(@expression.links) do %>
+            <small>Linked expression: <%= link %>'s group supported by <%= Enum.at(@expression.supports, idx) %> users <%= if Map.has_key?(assigns, :show_quorum_and_group_count) and @show_quorum_and_group_count do "(#{Enum.at(@expression.quorums, idx)} out of #{Enum.at(@expression.group_counts, idx)} needed)" end %></small>
+          <% end %>
 
           <%= if Map.has_key?(assigns, :show_subscribe) do %>
             <button phx-click="subscribe" phx-value-expression_id={@expression.id}>Subscribe</button>
@@ -18,9 +21,8 @@ defmodule VisionsUniteWeb.ExpressionComponent do
 
         <%= if Enum.count(@expression.links) != 0 do %>
           <small>
-            <b>linked expressions:</b>
             <%= for link <- @expression.links do %>
-              <%= link %>
+              <button>#<%= link %></button>
             <% end %>
           </small>
         <% end %>

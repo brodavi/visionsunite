@@ -25,19 +25,39 @@ defmodule VisionsUnite.Supports do
   end
 
   @doc """
-  Returns the list of support for a given expression.
+  This function returns the list of supports for a given expression.
+  NOTE: this returns a list of supports, even if the support is only for the single expression.
+        If the expression has 2+ links, the list will be the supports for each linked expression.
 
   ## Examples
 
-      iex> list_support_for_expression(expression)
-      [%Support{}, ...]
+      iex> list_supports_for_expression(expression)
+      [83, 12, ...]
 
   """
-  def list_support_for_expression(expression) do
-    query = from e in Support,
-      where: e.expression_id == ^expression.id and e.support >= 0.0
+  def list_supports_for_expression(expression) do
+    if Enum.count(expression.links) == 0 do
 
-    Repo.all(query)
+      # If no links, then this is a root expression. Return only the supports for this expression.
+
+      query = from e in Support,
+        where: e.expression_id == ^expression.id and e.support >= 0.0
+
+      [Repo.aggregate(query, :count)]
+
+    else
+
+      # There are linked expressions, so return the supports for each linked expression.
+
+      expression.links
+      |> Enum.map(fn linked_expression ->
+        query = from e in Support,
+          where: e.expression_id == ^linked_expression.id and e.support >= 0.0
+
+        Repo.aggregate(query, :count)
+      end)
+
+    end
   end
 
   @doc """

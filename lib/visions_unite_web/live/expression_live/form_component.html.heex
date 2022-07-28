@@ -33,7 +33,7 @@
 
   <%= if Enum.count(@my_subscriptions) != 0 or Enum.count(@my_expressions) != 0 do %>
     <%= for expression <- Enum.uniq_by(Enum.concat(@my_expressions, @my_subscriptions), & &1.id) do %>
-      <input type="checkbox" phx-target={@myself} phx-click="toggle_link_expressions" phx-value-id={expression.id} { if !is_nil(Enum.find(@links, & &1 == inspect expression.id)) do [checked: "checked"] else [] end } /> <%= expression.title %>
+      <input type="checkbox" phx-target={@myself} phx-click="toggle_linked_expressions" phx-value-id={expression.id} { if !is_nil(Enum.find(@links, & &1 == inspect expression.id)) do [checked: "checked"] else [] end } /> <%= expression.title %>
     <% end %>
   <% end %>
 </div>

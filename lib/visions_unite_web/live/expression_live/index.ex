@@ -179,25 +179,22 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   defp annotate_with_quorum_and_group_count(expressions) do
     expressions
     |> Enum.map(fn expression ->
-      quorum = SeekingSupports.get_quorum_num_for_expression(expression)
-      quorum = Kernel.max(quorum, 1)
 
-      group_count =
+      # quorums is this list of quorums for this expression (quorums of all linked expressions)
+      # if the expression has no links, or only one link, the list is length 1
+
+      quorums =
+        SeekingSupports.get_quorum_nums_for_expression(expression)
+
+      # group_counts is the list of subscriptions for this expression (group counts of all linked expressions)
+      # if the expression has no links, or only one link, the list is length 1
+
+      group_counts =
         ExpressionSubscriptions.list_expression_subscriptions_for_expression(expression.id)
-        |> Enum.count()
-
-      group_count =
-        if group_count == 1 do
-          # If only one person is subscribed to this expression (the author), then ...
-          #  ... does it mean this is a root expression? wat?
-          Enum.count(Accounts.list_users())
-        else
-          group_count
-        end
 
       Map.merge(expression, %{
-        quorum: quorum,
-        group_count: group_count
+        quorums: quorums,
+        group_counts: group_counts
       })
     end)
   end
@@ -210,13 +207,10 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   end
 
   defp annotate_with_supports_and_links(expression) when is_map(expression) do
-    %{
-      id: expression.id,
-      title: expression.title,
-      body: expression.body,
-      support: Enum.count(Supports.list_support_for_expression(expression)),
-      links: Enum.map(expression.links, & &1.title)
-    }
+    Map.merge(expression, %{
+      supports: Supports.list_supports_for_expression(expression),
+      links: Enum.map(expression.links, & &1.title),
+    })
   end
 end
 

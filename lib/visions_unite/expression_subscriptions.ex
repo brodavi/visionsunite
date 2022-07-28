@@ -8,6 +8,8 @@ defmodule VisionsUnite.ExpressionSubscriptions do
   alias VisionsUnite.Repo
 
   alias VisionsUnite.ExpressionSubscriptions.ExpressionSubscription
+  alias VisionsUnite.Accounts
+  alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
 
   @doc """
@@ -25,7 +27,8 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   @doc """
   Returns the list of expression_subscriptions for a particular expression.
-
+  NOTE: this returns a list of subscriptions, even if the subscription is only for the single expression.
+        If the expression has 2+ links, the list will be the subscriptions for each linked expression.
   ## Examples
 
       iex> list_expression_subscriptions_for_expression(expression_id)
@@ -33,9 +36,29 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   """
   def list_expression_subscriptions_for_expression(expression_id) do
-    query = from es in ExpressionSubscription,
-      where: es.expression_id == ^expression_id
-    Repo.all(query)
+    expression =
+      Expressions.get_expression!(expression_id)
+
+    if Enum.count(expression.links) == 0 do
+
+      # If no links, then this is a root expression. Group size is based off of all users in system.
+
+      [Accounts.count_users() -1] # -1 to account for author
+
+    else
+
+      # There are linked expressions, so find the group size of each linked expression.
+
+      expression.links
+      |> Enum.map(fn linked_expression ->
+        query =
+          from es in ExpressionSubscription,
+        where: es.expression_id == ^linked_expression.id
+
+        Repo.aggregate(query, :count)
+      end)
+
+    end
   end
 
   @doc """

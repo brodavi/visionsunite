@@ -216,6 +216,7 @@ defmodule VisionsUnite.SeekingSupports do
   # linked expression's group but not another.
   #
 
+  def get_sortition_num(0), do: 0
   def get_sortition_num(group_count) do
 
     ## Calculating Sample Size with Finite Population from https://www.youtube.com/watch?v=gLD4tENS82c
@@ -245,19 +246,43 @@ defmodule VisionsUnite.SeekingSupports do
     numerator / denominator
   end
 
-  #
-  # This function returns the quorum necessary for an expression to be fully supported.
-  # The quorum is a simple majority 51% or *0.51 of the sortition size.
-  #
-  def get_quorum_num_for_expression(expression) do
+  @doc """
+  This function returns the quorums necessary for an expression to be fully supported.
+  NOTE: this returns a list of quorums, even if the quorum is only for the single expression.
+        If the expression has 2+ links, the list will be the quorums for each linked expression.
+  The quorum is a simple majority 51% or *0.51 of the sortition size.
+
+  ## Examples
+
+      iex> get_quorum_nums_for_expression(823)
+      25
+
+  """
+  def get_quorum_nums_for_expression(expression) do
     if Enum.count(expression.links) == 0 do
-      Kernel.round(get_sortition_num(Accounts.count_users() - 1) * 0.51) # -1 to account for author
+
+      # If no links, then this is a root expression. Sortition is based off of all users in system.
+
+      quorum =
+        get_sortition_num(Accounts.count_users() - 1) * 0.51 # -1 to account for author
+        |> Kernel.round()
+        |> Kernel.max(1)
+
+      [quorum]
+
     else
-      Enum.map(expression.links, fn link_title, acc ->
+
+      # There are linked expressions, so find sortition of each linked expression first.
+
+      Enum.map(expression.links, fn link_title ->
         link_group_count =
           ExpressionSubscriptions.count_expression_subscriptions_for_expression_by_name(link_title)
-        Kernel.round(get_sortition_num(link_group_count - 1) * 0.51) # -1 to account for author
+
+        get_sortition_num(link_group_count - 1) * 0.51 # -1 to account for author
+        |> Kernel.round()
+        |> Kernel.max(1)
       end)
+
     end
   end
 end
