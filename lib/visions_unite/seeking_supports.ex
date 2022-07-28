@@ -83,9 +83,9 @@ defmodule VisionsUnite.SeekingSupports do
   """
   def seek_supporters(expression) do
     subscribers =
-      expression.parents
-      |> Enum.map(fn parent_expression ->
-        ExpressionSubscriptions.list_expression_subscriptions_for_expression(parent_expression)
+      expression.links
+      |> Enum.map(fn linked_expression ->
+        ExpressionSubscriptions.list_expression_subscriptions_for_expression(linked_expression)
         # this returns [%{expression_id: 43, user_id: 24}, ...] , etc
         |> Enum.filter(& &1.user_id)
         # this returns [%{user_id: 24}, ...] , etc
@@ -103,7 +103,7 @@ defmodule VisionsUnite.SeekingSupports do
     #  ],
     # ]
     #
-    # ... which is the set of sets of users subscribed to each parent
+    # ... which is the set of sets of users subscribed to each link
 
     sortition =
       if subscribers == [] do
@@ -136,6 +136,7 @@ defmodule VisionsUnite.SeekingSupports do
         end)
 
       end
+
       # NOTE: the variable `sortition` at this point has a list of users... and NOT unique.
 
     # TODO seek support one at a time, according to temperature?, not all at once
@@ -143,7 +144,7 @@ defmodule VisionsUnite.SeekingSupports do
     #  actually display it on anyone's screen until it is time....
     #  but then we need some sense of "next in line"?
 
-    if is_list(sortition) do
+    if is_list(List.first(sortition)) do
       # Seek support for each linked expression group
       sortition
       |> Enum.each(fn sortition_group ->
@@ -249,13 +250,13 @@ defmodule VisionsUnite.SeekingSupports do
   # The quorum is a simple majority 51% or *0.51 of the sortition size.
   #
   def get_quorum_num_for_expression(expression) do
-    if Enum.count(expression.parents) == 0 do
+    if Enum.count(expression.links) == 0 do
       Kernel.round(get_sortition_num(Accounts.count_users() - 1) * 0.51) # -1 to account for author
     else
-      Enum.map(expression.parents, fn parent_title, acc ->
-        parent_group_count =
-          ExpressionSubscriptions.count_expression_subscriptions_for_expression_by_name(parent_title)
-        Kernel.round(get_sortition_num(parent_group_count - 1) * 0.51) # -1 to account for author
+      Enum.map(expression.links, fn link_title, acc ->
+        link_group_count =
+          ExpressionSubscriptions.count_expression_subscriptions_for_expression_by_name(link_title)
+        Kernel.round(get_sortition_num(link_group_count - 1) * 0.51) # -1 to account for author
       end)
     end
   end

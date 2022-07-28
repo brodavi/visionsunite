@@ -2,7 +2,7 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
   use VisionsUniteWeb, :live_component
 
   alias VisionsUnite.Expressions
-  alias VisionsUnite.ExpressionParentages
+  alias VisionsUnite.ExpressionLinkages
   alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUnite.SeekingSupports
 
@@ -13,23 +13,23 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:parents, expression.parents)
+     |> assign(:links, expression.links)
      |> assign(:changeset, changeset)}
   end
 
   @impl true
-  def handle_event("toggle_parent_expressions", %{ "id" => id }, socket) do
-    parents =
-      if Enum.find(socket.assigns.parents, & &1 == id) do
-        socket.assigns.parents
+  def handle_event("toggle_linked_expressions", %{ "id" => id }, socket) do
+    links =
+      if Enum.find(socket.assigns.links, & &1 == id) do
+        socket.assigns.links
         |> Enum.filter(& &1 != id)
       else
-        [id | socket.assigns.parents]
+        [id | socket.assigns.links]
       end
 
     socket =
       socket
-      |> assign(parents: parents)
+      |> assign(links: links)
     {:noreply, socket}
   end
 
@@ -67,12 +67,12 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
     case Expressions.create_expression(expression_params) do
       {:ok, expression} ->
 
-        # Try to link parents...
-        socket.assigns.parents
-        |> Enum.each(fn parent ->
-          ExpressionParentages.create_expression_parentage(%{
+        # Try to link...
+        socket.assigns.links
+        |> Enum.each(fn link ->
+          ExpressionLinkages.create_expression_linkage(%{
             expression_id: expression.id,
-            parent_id: parent
+            link_id: link
           })
         end)
 

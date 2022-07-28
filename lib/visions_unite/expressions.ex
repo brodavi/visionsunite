@@ -24,7 +24,7 @@ defmodule VisionsUnite.Expressions do
   """
   def list_expressions do
     Repo.all(Expression)
-    |> Repo.preload(:parents)
+    |> Repo.preload(:links)
   end
 
   @doc """
@@ -58,7 +58,7 @@ defmodule VisionsUnite.Expressions do
 
     Enum.concat(root_expressions, subscribed_expressions)
     |> Enum.uniq()
-    |> Repo.preload(:parents)
+    |> Repo.preload(:links)
   end
 
   @doc """
@@ -74,7 +74,7 @@ defmodule VisionsUnite.Expressions do
     query = from i in Expression,
       where: i.author_id == ^user_id
     Repo.all(query)
-    |> Repo.preload(:parents)
+    |> Repo.preload(:links)
   end
 
   @doc """
@@ -93,7 +93,7 @@ defmodule VisionsUnite.Expressions do
       where: se.user_id == ^user_id
 
     Repo.all(query)
-    |> Repo.preload(:parents)
+    |> Repo.preload(:links)
   end
 
   @doc """
@@ -112,7 +112,7 @@ defmodule VisionsUnite.Expressions do
       where: es.user_id == ^user_id and e.author_id != ^user_id
 
     Repo.all(query)
-    |> Repo.preload(:parents)
+    |> Repo.preload(:links)
   end
 
   @doc """
@@ -131,7 +131,7 @@ defmodule VisionsUnite.Expressions do
   """
   def get_expression!(id) do
     Repo.get!(Expression, id)
-    |> Repo.preload(:parents)
+    |> Repo.preload(:links)
   end
 
   @doc """
@@ -154,7 +154,7 @@ defmodule VisionsUnite.Expressions do
 
     {:ok,
       expression
-      |> Repo.preload([:parents])}
+      |> Repo.preload([:links])}
   end
 
   @doc """

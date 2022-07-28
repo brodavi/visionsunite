@@ -20,10 +20,10 @@ defmodule VisionsUnite.Repo.Migrations.CreateExpressions do
       timestamps()
     end
 
-    # Expressions' parentage
-    create table(:expression_parentages) do
+    # Expressions' linkage
+    create table(:expression_linkages) do
       add :expression_id, references(:expressions, on_delete: :delete_all), null: false
-      add :parent_id, references(:expressions, on_delete: :delete_all), null: false
+      add :link_id, references(:expressions, on_delete: :delete_all), null: false
 
       timestamps()
     end
@@ -37,7 +37,7 @@ defmodule VisionsUnite.Repo.Migrations.CreateExpressions do
     end
 
     create index(:expressions, [:author_id])
-    create index(:expression_parentages, [:expression_id, :parent_id])
+    create index(:expression_linkages, [:expression_id, :link_id])
     create index(:seeking_supports, [:user_id])
     create unique_index(:seeking_supports, [:user_id,  :expression_id], name: :unique_support_seek)
   end

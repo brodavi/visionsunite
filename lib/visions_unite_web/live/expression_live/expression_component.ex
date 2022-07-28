@@ -16,11 +16,11 @@ defmodule VisionsUniteWeb.ExpressionComponent do
           <% end %>
         </div>
 
-        <%= if Enum.count(@expression.parents) != 0 do %>
+        <%= if Enum.count(@expression.links) != 0 do %>
           <small>
             <b>linked expressions:</b>
-            <%= for parent <- @expression.parents do %>
-              <%= parent %>
+            <%= for link <- @expression.links do %>
+              <%= link %>
             <% end %>
           </small>
         <% end %>
