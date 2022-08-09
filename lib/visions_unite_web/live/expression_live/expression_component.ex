@@ -6,26 +6,36 @@ defmodule VisionsUniteWeb.ExpressionComponent do
       <div>
         <div>
           <div><b><%= @expression.title %></b></div>
-          <%= for {link, idx} <- Enum.with_index(@expression.links) do %>
-            <small>Linked expression: <%= link %>'s group supported by <%= Enum.at(@expression.supports, idx) %> users <%= if Map.has_key?(assigns, :show_quorum_and_group_count) and @show_quorum_and_group_count do "(#{Enum.at(@expression.quorums, idx)} out of #{Enum.at(@expression.group_counts, idx)} needed)" end %></small>
+
+          <%= if Enum.count(@expression.links) == 0 do %>
+            <small>supported by <%= @expression.support %> users <%= "(#{@expression.quorum_count} out of #{@expression.subscription_count} needed)" %></small>
           <% end %>
 
-          <%= if Map.has_key?(assigns, :show_subscribe) do %>
-            <button phx-click="subscribe" phx-value-expression_id={@expression.id}>Subscribe</button>
+          <%= for link <- @expression.links do %>
+            <details>
+              <summary>
+                <button><%= link.title %></button>
+              </summary>
+              <small>Linked expression: <code><%= link.title %></code>'s group (<%= link.subscription_count %> users) supported by <%= link.support %> users <%= "(#{link.quorum_count} out of #{link.subscription_count} needed to be fully supported)" %></small>
+            </details>
           <% end %>
 
-          <%= if Map.has_key?(assigns, :show_unsubscribe) do %>
-            <button phx-click="unsubscribe" phx-value-expression_id={@expression.id}>Unsubscribe</button>
+          <%= if Map.has_key?(@expression, :notes) do %>
+            <br>
+            <small>
+              <details>
+                <summary>
+                  <b>User feedback:</b>
+                </summary>
+                <ul>
+                  <%= for note <- @expression.notes do %>
+                    <li><%= note %></li>
+                  <% end %>
+                </ul>
+              </details>
+            </small>
           <% end %>
         </div>
-
-        <%= if Enum.count(@expression.links) != 0 do %>
-          <small>
-            <%= for link <- @expression.links do %>
-              <button>#<%= link %></button>
-            <% end %>
-          </small>
-        <% end %>
       </div>
     """
   end

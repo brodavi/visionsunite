@@ -26,38 +26,34 @@ defmodule VisionsUnite.Supports do
 
   @doc """
   This function returns the list of supports for a given expression.
-  NOTE: this returns a list of supports, even if the support is only for the single expression.
-        If the expression has 2+ links, the list will be the supports for each linked expression.
 
   ## Examples
 
       iex> list_supports_for_expression(expression)
-      [83, 12, ...]
+      83
 
   """
   def list_supports_for_expression(expression) do
-    if Enum.count(expression.links) == 0 do
+    query = from e in Support,
+      where: e.expression_id == ^expression.id
 
-      # If no links, then this is a root expression. Return only the supports for this expression.
+    Repo.all(query)
+  end
 
-      query = from e in Support,
-        where: e.expression_id == ^expression.id and e.support >= 0.0
+  @doc """
+  This function returns the count of supports for a given expression.
 
-      [Repo.aggregate(query, :count)]
+  ## Examples
 
-    else
+      iex> count_support_for_expression(expression)
+      83
 
-      # There are linked expressions, so return the supports for each linked expression.
+  """
+  def count_support_for_expression(expression) do
+    query = from e in Support,
+      where: e.expression_id == ^expression.id and e.support > 0.0
 
-      expression.links
-      |> Enum.map(fn linked_expression ->
-        query = from e in Support,
-          where: e.expression_id == ^linked_expression.id and e.support >= 0.0
-
-        Repo.aggregate(query, :count)
-      end)
-
-    end
+    Repo.aggregate(query, :count)
   end
 
   @doc """
@@ -112,9 +108,10 @@ defmodule VisionsUnite.Supports do
 
   """
   def create_support(attrs \\ %{}) do
-    support = %Support{}
-              |> Support.changeset(attrs)
-              |> Repo.insert()
+    support =
+      %Support{}
+      |> Support.changeset(attrs)
+      |> Repo.insert()
 
     {:ok, %Support{ expression_id: expression_id, user_id: user_id }} = support
 
@@ -122,23 +119,45 @@ defmodule VisionsUnite.Supports do
     user = Accounts.get_user!(user_id)
 
     # Remove the existing seeking support from the user that just clicked
-    existing_seeking_support = SeekingSupports.get_seeking_support_for_expression_and_user!(expression, user)
+    existing_seeking_support =
+      SeekingSupports.get_seeking_support_for_expression_and_user!(expression, user)
+
     SeekingSupports.delete_seeking_support(existing_seeking_support)
 
     # Seeking Support has been deleted.... now we check for support
-    quorum = SeekingSupports.get_quorum_num_for_expression(expression)
+    subscribers_map =
+      SeekingSupports.get_subscribers_map(expression)
 
-    if Expressions.is_expression_fully_supported(expression, quorum) do
-      # if expression has been fully supported, remove ALL seeking support
-      # because the goal has already been reached
-      SeekingSupports.delete_all_seeking_support_for_expression(expression)
+    quorum_map =
+      Map.keys(subscribers_map)
+      |> Map.new(fn group_id ->
+        sortition_size =
+          subscribers_map
+          |> Map.get(group_id)
+          |> Enum.count()
+          |> SeekingSupports.calculate_sortition_size()
 
-      # then broadcast the support for all users
-      VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :expression_fully_supported, "support")
+        quorum_size = Kernel.round(sortition_size * 0.51)
 
-      # also, mark the expression as fully supported, because more users will screw up whether or not it is indeed
-      Expressions.mark_fully_supported(expression)
-    end
+        {group_id, quorum_size}
+      end)
+
+    Map.keys(quorum_map)
+    |> Enum.each(fn group_id ->
+
+      if Expressions.is_expression_fully_supported(expression, Map.get(quorum_map, group_id)) do
+
+        # if expression has been fully supported, remove ALL seeking support
+        # because the goal has already been reached
+        SeekingSupports.delete_all_seeking_support_for_expression(expression)
+
+        # also, mark the expression as fully supported, because more users will screw up whether or not it is indeed
+        Expressions.mark_fully_supported(expression)
+
+        # then broadcast the support for all users
+        VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :expression_fully_supported, "support")
+      end
+    end)
 
     # broadcast to everyone that an expression has been supported, regardless
     # of whether or not it is fully supported

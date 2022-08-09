@@ -11,14 +11,16 @@ defmodule VisionsUnite.StartupTasks do
           "password" => System.get_env("SUPERADMIN_PASSWORD")
         })
 
-        1..6
-        |> Enum.each(fn x ->
-          # Create 6 new users
-          Accounts.register_user(%{
-            "email" => "testuser#{x}@test.test",
-            "password" => System.get_env("SUPERADMIN_PASSWORD")
-          })
-        end)
+        if System.get_env("ENV") != "production" do
+          1..6
+          |> Enum.each(fn x ->
+            # Create 6 new users
+            Accounts.register_user(%{
+              "email" => "testuser#{x}@test.test",
+              "password" => System.get_env("SUPERADMIN_PASSWORD")
+            })
+          end)
+        end
 
       _ ->
         IO.puts "Superadmin already exists."

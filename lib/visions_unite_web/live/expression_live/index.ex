@@ -1,8 +1,8 @@
 defmodule VisionsUniteWeb.ExpressionLive.Index do
   use VisionsUniteWeb, :live_view
 
-  alias VisionsUnite.Accounts
   alias VisionsUnite.SeekingSupports
+  alias VisionsUnite.Accounts
   alias VisionsUnite.Supports
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
@@ -26,7 +26,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
       |> assign(:my_expressions, list_my_expressions(user_id))
       |> assign(:my_subscriptions, list_my_subscriptions(user_id))
       |> assign(:fully_supported_expressions, list_fully_supported_expressions(user_id))
-      |> assign(:seeking_support, list_expressions_seeking_my_support(user_id))
+      |> assign(:my_seeking_supports, list_my_seeking_supports(user_id))
     {:ok, socket}
   end
 
@@ -54,8 +54,20 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   end
 
   @impl true
-  def handle_event("my_support", %{"expression_id" => expression_id, "support" => support}, socket) do
-    Supports.create_support(%{ expression_id: expression_id, user_id: socket.assigns.current_user_id, support: support })
+  def handle_event("my_support", %{"support_form" => %{
+    "expression_id" => expression_id,
+    "support" => support,
+    "note" => note,
+    "for_group_id" => for_group_id
+  }}, socket) do
+
+    Supports.create_support(%{
+      expression_id: expression_id,
+      for_group_id: for_group_id,
+      user_id: socket.assigns.current_user_id,
+      support: support,
+      note: note
+    })
 
     actioned =
       case support do
@@ -70,7 +82,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     socket =
       socket
       |> put_flash(:info, "Successfully #{actioned} expression. Thank you!")
-      |> assign(:seeking_support, list_expressions_seeking_my_support(socket.assigns.current_user_id))
+      |> assign(:my_seeking_supports, list_my_seeking_supports(socket.assigns.current_user_id))
     {:noreply, socket}
   end
 
@@ -106,9 +118,12 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   @impl true
   def handle_info({:expression_supported, expression}, socket) do
     if Enum.any?(socket.assigns.my_expressions, & &1.id == expression.id) do
+      my_expressions = list_my_expressions(socket.assigns.current_user_id)
+
       socket =
         socket
-        |> assign(:my_expressions, list_my_expressions(socket.assigns.current_user_id))
+        |> assign(:my_expressions, my_expressions)
+
       {:noreply, socket}
     else
       {:noreply, socket}
@@ -117,99 +132,159 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
   @impl true
   def handle_info({:sortition_created, expression}, socket) do
-    sortition = SeekingSupports.list_support_sought_for_expression(expression)
+    my_seeking_supports = list_my_seeking_supports(socket.assigns.current_user_id)
 
-    expression =
-      annotate_with_supports_and_links(expression)
+    socket =
+      socket
+      |> assign(my_seeking_supports: my_seeking_supports)
 
-    if Enum.find(sortition, & &1.user_id == socket.assigns.current_user_id) do
-      socket =
-        socket
-        |> assign(seeking_support: [expression | socket.assigns.seeking_support])
-      {:noreply, socket}
-    else
-      {:noreply, socket}
-    end
+    {:noreply, socket}
   end
 
   @impl true
   def handle_info({:expression_fully_supported, expression}, socket) do
-    # An expression was fully supported. Remove it from the seeking_support list
-    seeking_support =
-      socket.assigns.seeking_support
-      |> Enum.filter(fn expression_seeking_support ->
-        expression_seeking_support.id != expression.id
-      end)
+    # An expression was fully supported. Remove it from the seeking_supports list
+    # TODO: do the more efficient filtering expression, don't hit the DB
+    my_seeking_supports = list_my_seeking_supports(socket.assigns.current_user_id)
+    fully_supported_expressions = list_fully_supported_expressions(socket.assigns.current_user_id)
 
     socket =
       socket
-      |> assign(seeking_support: seeking_support)
-      |> assign(fully_supported_expressions: [expression |> annotate_with_supports_and_links | socket.assigns.fully_supported_expressions])
+      |> assign(my_seeking_supports: my_seeking_supports)
+      |> assign(fully_supported_expressions: fully_supported_expressions)
     {:noreply, socket}
   end
 
-  defp list_expressions_seeking_my_support(id) do
-    Expressions.list_expressions_seeking_support_from_user(id)
-    |> annotate_with_supports_and_links()
+  defp list_my_seeking_supports(user_id) do
+    my_seeking_supports =
+    SeekingSupports.list_support_sought_for_user(user_id)
+    |> Enum.map(fn ss ->
+
+      expression =
+        Expressions.get_expression!(ss.expression_id)
+        |> annotate_with_support()
+        |> annotate_with_group_data()
+        |> annotate_links()
+
+      group =
+        if is_nil(ss.for_group_id) do
+          %{id: nil, title: "everyone"}
+        else
+          Expressions.get_expression!(ss.for_group_id)
+        end
+
+      %{
+        expression: expression,
+        group: group
+      }
+    end)
+
+    my_seeking_supports
   end
 
   defp list_fully_supported_expressions(id) do
     Expressions.list_fully_supported_expressions(id)
-    |> annotate_with_supports_and_links()
+    |> annotate_with_support()
+    |> annotate_with_group_data()
+    |> annotate_links()
   end
 
   defp list_my_subscriptions(id) do
     Expressions.list_subscribed_expressions_for_user(id)
-    |> annotate_with_supports_and_links()
-  end
+    |> annotate_with_support()
+    |> annotate_with_group_data()
+    |> annotate_links() end
 
   defp list_my_expressions(id) do
     Expressions.list_expressions_for_user(id)
-    |> annotate_with_supports_and_links()
-    |> annotate_with_quorum_and_group_count()
+    |> annotate_with_support()
+    |> annotate_with_group_data()
+    |> annotate_links()
+    |> annotate_with_notes()
   end
 
-  #
-  # This function annotates a list of expressions with each expression's quorum
-  # and group count. If the expression is a root expression, then the group count
-  # is the list of all the users in the system. If the expression is linked to
-  # other expressions, then there are multiple group counts per linked expression.
-  #
-
-  defp annotate_with_quorum_and_group_count(expressions) do
+  defp annotate_with_notes(expressions) when is_list(expressions) do
     expressions
     |> Enum.map(fn expression ->
-
-      # quorums is this list of quorums for this expression (quorums of all linked expressions)
-      # if the expression has no links, or only one link, the list is length 1
-
-      quorums =
-        SeekingSupports.get_quorum_nums_for_expression(expression)
-
-      # group_counts is the list of subscriptions for this expression (group counts of all linked expressions)
-      # if the expression has no links, or only one link, the list is length 1
-
-      group_counts =
-        ExpressionSubscriptions.list_expression_subscriptions_for_expression(expression.id)
-
-      Map.merge(expression, %{
-        quorums: quorums,
-        group_counts: group_counts
-      })
+      annotate_with_notes(expression)
     end)
   end
 
-  defp annotate_with_supports_and_links(expressions) when is_list(expressions) do
-    expressions
-    |> Enum.map(fn expression ->
-      annotate_with_supports_and_links(expression)
-    end)
-  end
+  defp annotate_with_notes(expression) when is_map(expression) do
+    notes =
+      Supports.list_supports_for_expression(expression)
+      |> Enum.map(& &1.note)
 
-  defp annotate_with_supports_and_links(expression) when is_map(expression) do
     Map.merge(expression, %{
-      supports: Supports.list_supports_for_expression(expression),
-      links: Enum.map(expression.links, & &1.title),
+      notes: notes
+    })
+  end
+
+  defp annotate_links(expressions) when is_list(expressions) do
+    expressions
+    |> Enum.map(fn expression ->
+      annotate_links(expression)
+    end)
+  end
+
+  defp annotate_links(expression) when is_map(expression) do
+    annotated_links =
+      expression.links
+      |> annotate_with_support()
+      |> annotate_with_group_data()
+
+    Map.merge(expression, %{
+      links: annotated_links
+    })
+  end
+
+  defp annotate_with_group_data(expressions) when is_list(expressions) do
+    expressions
+    |> Enum.map(fn expression ->
+      annotate_with_group_data(expression)
+    end)
+  end
+
+  defp annotate_with_group_data(expression) when is_map(expression) do
+    subscription_count =
+      ExpressionSubscriptions.count_expression_subscriptions_for_expression(expression)
+
+    sortition_count =
+      SeekingSupports.calculate_sortition_size(subscription_count)
+
+    subscription_count =
+      if subscription_count == 1 do
+        # This only has 1 subscriber... the author... so it is a root expression
+        Accounts.count_users()
+      else
+        subscription_count
+      end
+
+    sortition_count =
+      if sortition_count == 1 do
+        # This only has a sortition count of 1 ... the author... so it is a root expression
+        SeekingSupports.calculate_sortition_size(Accounts.count_users())
+      else
+        sortition_count
+      end
+
+    Map.merge(expression, %{
+      sortition_count: sortition_count,
+      quorum_count: Kernel.round(sortition_count * 0.51),
+      subscription_count: subscription_count
+    })
+  end
+
+  defp annotate_with_support(expressions) when is_list(expressions) do
+    expressions
+    |> Enum.map(fn expression ->
+      annotate_with_support(expression)
+    end)
+  end
+
+  defp annotate_with_support(expression) when is_map(expression) do
+    Map.merge(expression, %{
+      support: Supports.count_support_for_expression(expression)
     })
   end
 end

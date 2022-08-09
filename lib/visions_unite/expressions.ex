@@ -129,6 +129,7 @@ defmodule VisionsUnite.Expressions do
       ** (Ecto.NoResultsError)
 
   """
+  def get_expression!(nil), do: nil
   def get_expression!(id) do
     Repo.get!(Expression, id)
     |> Repo.preload(:links)

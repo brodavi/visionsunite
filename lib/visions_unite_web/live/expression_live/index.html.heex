@@ -15,19 +15,69 @@
   </.modal>
 <% end %>
 
-<%= if Enum.count(@seeking_support) != 0 do %>
+<%= if Enum.count(@my_seeking_supports) != 0 do %>
   <b>Expressions Seeking Your Support</b>
   <table>
     <tbody id="expressions-seeking-support">
-      <%= for expression <- @seeking_support do %>
-        <tr id={"seeking-support-expression-#{expression.id}"}>
+      <%= for %{expression: expression, group: group} <- @my_seeking_supports do %>
+        <tr id={"seeking-support-#{expression.id}"}>
           <td>
             <ExpressionComponent.expression expression={expression} />
           </td>
           <td>
-            <button phx-click="my_support" phx-value-support={1} phx-value-expression_id={expression.id}>I support</button>
-            <button phx-click="my_support" phx-value-support={0} phx-value-expression_id={expression.id}>I do not support</button>
-            <button phx-click="my_support" phx-value-support={-1} phx-value-expression_id={expression.id}>I object</button>
+            For group: <%= group.title %>
+          </td>
+          <td>
+
+            <div class="row">
+
+            <.form
+              let={f}
+              for={:support_form}
+              id={"support-form-#{expression.id}"}
+              phx-submit="my_support"
+              class="column">
+
+              <%= submit "I support", phx_disable_with: "Saving..." %>
+              <%= textarea f, :note, rows: 6, placeholder: "Reasons for why you support (optional)" %>
+
+              <%= hidden_input f, :support, value: 1 %>
+              <%= hidden_input f, :expression_id, value: expression.id %>
+              <%= hidden_input f, :for_group_id, value: group.id %>
+
+            </.form>
+
+            <.form
+              let={f}
+              for={:support_form}
+              id={"support-form-#{expression.id}"}
+              phx-submit="my_support"
+              class="column">
+
+              <%= submit "I no not support", phx_disable_with: "Saving..." %>
+              <%= textarea f, :note, rows: 6, placeholder: "Explanation for why I do not support (optional)"%>
+
+              <%= hidden_input f, :support, value: 0 %>
+              <%= hidden_input f, :expression_id, value: expression.id %>
+              <%= hidden_input f, :for_group_id, value: group.id %>
+
+            </.form>
+
+            <.form
+              let={f}
+              for={:support_form}
+              id={"support-form-#{expression.id}"}
+              phx-submit="my_support"
+              class="column">
+
+              <%= submit "I object", phx_disable_with: "Saving..." %>
+              <%= textarea f, :note, rows: 6, placeholder: "This is spam (for example)" %>
+              <%= hidden_input f, :support, value: -1 %>
+              <%= hidden_input f, :expression_id, value: expression.id %>
+              <%= hidden_input f, :for_group_id, value: group.id %>
+            </.form>
+
+            </div>
           </td>
         </tr>
       <% end %>
@@ -42,7 +92,7 @@
       <%= for expression <- @my_expressions do %>
         <tr id={"my-expression-#{expression.id}"}>
           <td>
-            <ExpressionComponent.expression expression={expression} show_quorum_and_group_count={is_nil(expression.fully_supported)} />
+            <ExpressionComponent.expression expression={expression} />
           </td>
         </tr>
       <% end %>
@@ -57,7 +107,10 @@
       <%= for expression <- @my_subscriptions do %>
         <tr id={"my-subscription-#{expression.id}"}>
           <td>
-            <ExpressionComponent.expression expression={expression} show_unsubscribe={true} />
+            <ExpressionComponent.expression expression={expression} />
+          </td>
+          <td>
+            <button phx-click="unsubscribe" phx-value-expression_id={@expression.id}>Unsubscribe</button>
           </td>
         </tr>
       <% end %>
@@ -73,7 +126,10 @@
       <%= for expression <- @fully_supported_expressions do %>
         <tr id={"supported-expression-#{expression.id}"}>
           <td>
-            <ExpressionComponent.expression expression={expression} show_subscribe={true} />
+            <ExpressionComponent.expression expression={expression} />
+          </td>
+          <td>
+            <button phx-click="subscribe" phx-value-expression_id={expression.id}>Subscribe</button>
           </td>
         </tr>
       <% end %>

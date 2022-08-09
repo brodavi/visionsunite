@@ -1,14 +1,5 @@
 defmodule VisionsUnite.SeekingSupports do
 
-  # some app configurations
-  @sortition_percent_or_fixed System.get_env("SORTITION_PERCENT_OR_FIXED")
-  @sortition_percent String.to_integer(System.get_env("SORTITION_PERCENT"))
-  @sortition_fixed String.to_integer(System.get_env("SORTITION_FIXED"))
-  @sortition_max 384 # see https://surveysystem.com/sscalc.htm
-  @quorum_percent_or_fixed System.get_env("QUORUM_PERCENT_OR_FIXED")
-  @quorum_percent String.to_integer(System.get_env("QUORUM_PERCENT"))
-  @quorum_fixed String.to_integer(System.get_env("QUORUM_FIXED"))
-
   @moduledoc """
   The SeekingSupport context.
   """
@@ -37,6 +28,22 @@ defmodule VisionsUnite.SeekingSupports do
       where: e.expression_id == ^expression.id and e.user_id == ^user.id
 
     Repo.one(query)
+  end
+
+  @doc """
+  Returns the list of support sought for a given user.
+
+  ## Examples
+
+      iex> list_support_sought_for_user(user_id)
+      [3, 25, ...]
+
+  """
+  def list_support_sought_for_user(user_id) do
+    query =
+      from ss in SeekingSupport,
+      where: ss.user_id == ^user_id
+    Repo.all(query)
   end
 
   @doc """
@@ -82,91 +89,45 @@ defmodule VisionsUnite.SeekingSupports do
       [%User{}, ...]
   """
   def seek_supporters(expression) do
-    subscribers =
-      expression.links
-      |> Enum.map(fn linked_expression ->
-        ExpressionSubscriptions.list_expression_subscriptions_for_expression(linked_expression)
-        # this returns [%{expression_id: 43, user_id: 24}, ...] , etc
-        |> Enum.filter(& &1.user_id)
-        # this returns [%{user_id: 24}, ...] , etc
-        |> Enum.filter(& &1 != expression.author_id)
-      end)
 
-    # this returns...
+    subscribers_map =
+      get_subscribers_map(expression)
+
+    sortitions_map =
+      get_sortition_map(subscribers_map, expression)
     #
-    # [
-    #  [
-    #   %{user_id: 24}, ...
-    #  ],
-    #  [
-    #   %{user_id: 84}, ...
-    #  ],
-    # ]
+    # this is the "filtered" set of map of expression_ids and users, randomly
+    # selected from the subscribers to be the sortition group for that linked expression
     #
-    # ... which is the set of sets of users subscribed to each link
 
-    sortition =
-      if subscribers == [] do
+    # NOTE: sortitionas_map has sortitions that are NOT unique. One user could be in multiple
+    #       sortitions
+    #
+    # TODO seek support one at a time, according to "temperature?", not all at once
+    #      here we just create the seeking support... we don't have to actually display
+    #      it on anyone's screen until it is time.... but then we need some sense of
+    #      "next in line"? also, when do we display the request for the "next in line"?
+    #      I guess we don't really need "next in line" ... just find the seeking_supports,
+    #      not in any order, but whatever just pick "next in line" at random
 
-        # no linked expressions, so just get all users... this is a "root expression"
-        everyone =
-          Accounts.list_users_ids()
-          |> Enum.filter(& &1 != expression.author_id)
+    # Seek support for each linked expression group
+    sortitions_map
+    |> Enum.each(fn sortition_group ->
 
-        sortition_num = get_sortition_num(Enum.count(everyone))
+      group_id =
+        elem(sortition_group, 0)
 
-        # Random sortition is fine for root expressions
-        Enum.take_random(everyone, Kernel.round(sortition_num))
-
-      else
-
-        subscribers
-        |> Enum.map([], fn group ->
-
-          group =
-            group
-            |> Enum.filter(& &1 != expression.author_id)
-
-          # Get the sortition for each group separately
-          sortition_num = get_sortition_num(Enum.count(group))
-
-          # TODO get sortition correctly for each group
-          Enum.take_random(group, Kernel.round(sortition_num))
-
-        end)
-
-      end
-
-      # NOTE: the variable `sortition` at this point has a list of users... and NOT unique.
-
-    # TODO seek support one at a time, according to temperature?, not all at once
-    #  HOWEVER! this just creates the seeking support... we don't have to
-    #  actually display it on anyone's screen until it is time....
-    #  but then we need some sense of "next in line"?
-
-    if is_list(List.first(sortition)) do
-      # Seek support for each linked expression group
-      sortition
-      |> Enum.each(fn sortition_group ->
-        sortition_group
-        |> Enum.each(fn user_id ->
-          create_seeking_support(%{
-            expression_id: expression.id,
-            user_id: user_id
-          })
-        end)
-      end)
-    else
-      # Seek support from everyone in the system
-      sortition
-      |> Enum.each(fn user_id ->
+      elem(sortition_group, 1)
+      |> Enum.each(fn subscriber ->
         create_seeking_support(%{
           expression_id: expression.id,
-          user_id: user_id
+          user_id: subscriber,
+          for_group_id: group_id
         })
       end)
-    end
+    end)
 
+    # TODO maybe don't actually display it on anyone's screen until it is time?....
     VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :sortition_created, "sortitions")
   end
 
@@ -203,12 +164,103 @@ defmodule VisionsUnite.SeekingSupports do
   end
 
   #
-  # This function gets the sortition for an expression
+  # This function gets the subscriber lists for an expression
+  #
+  # This means it will follow all linked expressions (if there are any) and build a list of lists
+  # of users that subscribe to the linked expressions
+  #
+  # If the expression does not have any linked expressions, this returns an empty map!!!!
+  # and can thus be interpreted as a "root expression"
+  #
+  # TODO this really should go into ExpressionSubscriptions!!!!!!!!!!!!!!!!!
+  #
+  # NOTE: the "group_by" returns a MAP!!!!!!!!!!! so the return of this function will be %{} or
+  # %{5 => [1,2,3], 6 => [7,5,4], ...}
+  #
+  def get_subscribers_map(expression) do
+    IO.puts "----------------------- SeekingSupports.get_subscribers_map expression : #{inspect expression} ---------------------------------------"
+    subscribers_map =
+      if Enum.count(expression.expression_linkages) == 0 do
+        user_ids =
+          Accounts.list_users
+          |> Enum.filter(& &1.id != expression.author_id)
+          |> Enum.map(& &1.id)
+
+        %{nil => user_ids}
+      else
+        subscribers_list =
+          expression.expression_linkages
+          |> Enum.map(fn expression_link ->
+            # TODO this probably needs to be a single join query
+            ExpressionSubscriptions.list_expression_subscriptions_for_expression(expression_link.expression_id)
+            |> Enum.filter(& &1.user_id != expression.author_id)
+            |> Enum.map(& &1.user_id)
+          end)
+
+        IO.puts "subscribers list: #{inspect subscribers_list} -------------------------------------"
+
+        subscribers_map =
+          if Enum.count(Enum.at(subscribers_list, 0)) == 0 do
+            # Subscribers list is STILL 0 (there are linked expressions, but still nobody is subscribed)
+            # so just create the root expression subscribers map consisting of everyone
+            user_ids =
+              Accounts.list_users
+              |> Enum.filter(& &1.id != expression.author_id)
+              |> Enum.map(& &1.id)
+
+            %{nil => user_ids}
+          else
+            subscribers_list
+            |> Enum.group_by(& &1.expression_id)
+          end
+
+        IO.puts "subscribers map: #{inspect subscribers_map} -------------------------------------"
+
+        subscribers_map
+      end
+
+    subscribers_map
+  end
+
+  #
+  # This function randomly picks a sortition from a subscriber group
+  #
+  # NOTE: list of subscribers has this shape:
+  #
+  # %{ 32 => [ 24, 19, ...  ], 43 => [ 84, 3, ...  ], ... }
+  #
+  def get_sortition_map(subscribers_map, expression) do
+    if Enum.count(Map.keys(subscribers_map)) == 0 do
+      # this is a root expression... pull sortition list from group of all users
+      everyone =
+        Accounts.list_users_ids()
+        |> Enum.filter(& &1 != expression.author_id)
+
+      sortition_num = calculate_sortition_size(Enum.count(everyone))
+
+      # Random sortition is fine for root expressions
+      %{nil => Enum.take_random(everyone, Kernel.round(sortition_num))}
+    else
+      Map.keys(subscribers_map)
+      |> Enum.map(fn group_id ->
+        subscribers =
+          Map.get(subscribers_map, group_id)
+          |> Enum.filter(& &1 != expression.author_id)
+
+        # Get the sortition for each group separately
+        sortition_num = calculate_sortition_size(Enum.count(subscribers))
+
+        # NOTE this could have multiple instances of the same user
+        {group_id, Enum.take_random(subscribers, Kernel.round(sortition_num))}
+      end)
+    end
+  end
+
+  #
+  # This function gets the sortition size for a given population number
   #
   # The sortition is also known as the sample size, which is calculated by a formula
   # from statistics.
-  #
-  # The quorum is simply the simple majority of the sortition (51%)
   #
   # If an expression is a root expression, the sortition is calculated against the entire
   # user base. If an expression is linked with other expressions, the sortition is
@@ -216,11 +268,9 @@ defmodule VisionsUnite.SeekingSupports do
   # linked expression's group but not another.
   #
 
-  def get_sortition_num(0), do: 0
-  def get_sortition_num(group_count) do
+  def calculate_sortition_size(group_count) do
 
     ## Calculating Sample Size with Finite Population from https://www.youtube.com/watch?v=gLD4tENS82c
-    ## 
     ## c = Confidence Level = 95%
     ## p = Population Proportion = 0.5 (most conservative)
     ## e = Margin of Error aka Confidence Interval = 0.04 (4%)
@@ -231,59 +281,19 @@ defmodule VisionsUnite.SeekingSupports do
     ## 
     ## numerator = (z^2) * (p*(1-p))/(e^2) = 600.23
     ## denominator = 1 + (z^2) * (p*(1-p))/(e^2*pop) = 1.24
-    ## 
     ## Sample Size = numerator/denominator = 484
     ##
 
     p = 0.5
     e = 0.04
-    pop = group_count
+    pop = if group_count == %{} do Accounts.count_users() else group_count end
     z = 1.96 # For 95% confidence level
 
     numerator = Float.pow(z, 2) * (p * (1 - p)) / Float.pow(e, 2)
+
     denominator = 1 + Float.pow(z, 2) * (p * (1 - p)) / (Float.pow(e, 2) * pop)
 
-    numerator / denominator
-  end
-
-  @doc """
-  This function returns the quorums necessary for an expression to be fully supported.
-  NOTE: this returns a list of quorums, even if the quorum is only for the single expression.
-        If the expression has 2+ links, the list will be the quorums for each linked expression.
-  The quorum is a simple majority 51% or *0.51 of the sortition size.
-
-  ## Examples
-
-      iex> get_quorum_nums_for_expression(823)
-      25
-
-  """
-  def get_quorum_nums_for_expression(expression) do
-    if Enum.count(expression.links) == 0 do
-
-      # If no links, then this is a root expression. Sortition is based off of all users in system.
-
-      quorum =
-        get_sortition_num(Accounts.count_users() - 1) * 0.51 # -1 to account for author
-        |> Kernel.round()
-        |> Kernel.max(1)
-
-      [quorum]
-
-    else
-
-      # There are linked expressions, so find sortition of each linked expression first.
-
-      Enum.map(expression.links, fn link_title ->
-        link_group_count =
-          ExpressionSubscriptions.count_expression_subscriptions_for_expression_by_name(link_title)
-
-        get_sortition_num(link_group_count - 1) * 0.51 # -1 to account for author
-        |> Kernel.round()
-        |> Kernel.max(1)
-      end)
-
-    end
+    Kernel.round(numerator / denominator)
   end
 end
 

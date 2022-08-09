@@ -6,9 +6,11 @@ defmodule VisionsUnite.Supports.Support do
 
   schema "supports" do
     field :support, :float
+    field :note, :string
 
     belongs_to :user, User
     belongs_to :expression, Expression
+    belongs_to :for_group, Expression
 
     timestamps()
   end
@@ -16,7 +18,7 @@ defmodule VisionsUnite.Supports.Support do
   @doc false
   def changeset(supporting, attrs) do
     supporting
-    |> cast(attrs, [:user_id, :expression_id, :support])
+    |> cast(attrs, [:user_id, :expression_id, :for_group_id, :support, :note])
     |> validate_required([:user_id, :expression_id, :support])
   end
 end

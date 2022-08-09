@@ -18,15 +18,20 @@ input {
 }
 
 textarea {
-  height: 400px;
+  font-size: 0.9rem;
   color: #eeeeee;
 }
 
 button {
   line-height: 0.66rem;
   height: 2rem;
-  padding: 0.66rem;
+  padding-left: 0.66rem;
+  padding-right: 0.66rem;
   font-size: 0.66rem;
+}
+
+code {
+  color: #222222;
 }
 
 /* Alerts and form errors used by phx.new */
@@ -145,4 +150,9 @@ button {
 @keyframes fade-out-keys{
   0% { opacity: 1; }
   100% { opacity: 0; }
+}
+
+/* Column Spacing */
+.column {
+  margin: 10px;
 }

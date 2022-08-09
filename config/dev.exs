@@ -59,6 +59,7 @@ config :visions_unite, VisionsUniteWeb.Endpoint,
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
+      ~r"lib/visions_unite/*/.*(ex)$",
       ~r"lib/visions_unite_web/(live|views)/.*(ex)$",
       ~r"lib/visions_unite_web/templates/.*(eex)$"
     ]
