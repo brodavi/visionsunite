@@ -5,7 +5,6 @@ defmodule VisionsUnite.Repo.Migrations.CreateExpressions do
     create table(:expressions) do
       add :title, :string
       add :body, :text
-      add :fully_supported, :naive_datetime
       add :temperature, :float
       add :author_id, references(:users, on_delete: :delete_all), null: false
 
@@ -33,14 +32,22 @@ defmodule VisionsUnite.Repo.Migrations.CreateExpressions do
     create table(:expression_subscriptions) do
       add :expression_id, references(:expressions, on_delete: :delete_all), null: false
       add :user_id, references(:users, on_delete: :delete_all), null: false
+      add :subscribe, :boolean
 
       timestamps()
     end
 
+    # Create some indices
     create index(:expressions, [:author_id])
+
     create index(:expression_linkages, [:expression_id, :link_id])
+    create unique_index(:expression_linkages, [:expression_id, :link_id], name: :unique_link)
+
+    create index(:expression_subscriptions, [:expression_id, :user_id, :subscribe])
+    create unique_index(:expression_subscriptions, [:expression_id, :user_id, :subscribe], name: :unique_subscription)
+
     create index(:seeking_supports, [:user_id])
-    create unique_index(:seeking_supports, [:user_id,  :expression_id, :for_group_id], name: :unique_support_seek)
+    create unique_index(:seeking_supports, [:expression_id, :user_id, :for_group_id], name: :unique_support_seek)
   end
 end
 

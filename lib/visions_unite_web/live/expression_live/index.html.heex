@@ -16,131 +16,162 @@
 <% end %>
 
 <%= if Enum.count(@my_seeking_supports) != 0 do %>
-  <b>Expressions Seeking Your Support</b>
-  <table>
-    <tbody id="expressions-seeking-support">
-      <%= for %{expression: expression, group: group} <- @my_seeking_supports do %>
-        <tr id={"seeking-support-#{expression.id}"}>
-          <td>
-            <ExpressionComponent.expression expression={expression} />
-          </td>
-          <td>
-            For group: <%= group.title %>
-          </td>
-          <td>
-
-            <div class="row">
-
-            <.form
-              let={f}
-              for={:support_form}
-              id={"support-form-#{expression.id}"}
-              phx-submit="my_support"
-              class="column">
-
-              <%= submit "I support", phx_disable_with: "Saving..." %>
-              <%= textarea f, :note, rows: 6, placeholder: "Reasons for why you support (optional)" %>
-
-              <%= hidden_input f, :support, value: 1 %>
-              <%= hidden_input f, :expression_id, value: expression.id %>
-              <%= hidden_input f, :for_group_id, value: group.id %>
-
-            </.form>
-
-            <.form
-              let={f}
-              for={:support_form}
-              id={"support-form-#{expression.id}"}
-              phx-submit="my_support"
-              class="column">
-
-              <%= submit "I no not support", phx_disable_with: "Saving..." %>
-              <%= textarea f, :note, rows: 6, placeholder: "Explanation for why I do not support (optional)"%>
-
-              <%= hidden_input f, :support, value: 0 %>
-              <%= hidden_input f, :expression_id, value: expression.id %>
-              <%= hidden_input f, :for_group_id, value: group.id %>
-
-            </.form>
-
-            <.form
-              let={f}
-              for={:support_form}
-              id={"support-form-#{expression.id}"}
-              phx-submit="my_support"
-              class="column">
-
-              <%= submit "I object", phx_disable_with: "Saving..." %>
-              <%= textarea f, :note, rows: 6, placeholder: "This is spam (for example)" %>
-              <%= hidden_input f, :support, value: -1 %>
-              <%= hidden_input f, :expression_id, value: expression.id %>
-              <%= hidden_input f, :for_group_id, value: group.id %>
-            </.form>
-
+  <section>
+    <b>Expressions Seeking Your Support</b>
+      <div id="expressions-seeking-support">
+        <%= for %{expression: expression, group: group} <- @my_seeking_supports do %>
+          <div id={"seeking-support-#{expression.id}-#{group.id}"} class="roww">
+            <div>
+              <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
             </div>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+
+            <div>
+              For group: <%= group.title %>
+            </div>
+
+              <div class="roww">
+
+                <.form
+                  let={f}
+                  for={:support_form}
+                  id={"support-form-#{expression.id}-#{group.id}"}
+                  phx-submit="my_support"
+                  class="columnn">
+
+                  <%= textarea f, :note, rows: 6, placeholder: "Reasons for why you support (optional)" %>
+                  <%= submit "I support", phx_disable_with: "Saving...", class: "small" %>
+
+                  <%= hidden_input f, :support, value: 1 %>
+                  <%= hidden_input f, :expression_id, value: expression.id %>
+                  <%= hidden_input f, :for_group_id, value: group.id %>
+
+                </.form>
+
+                <.form
+                  let={f}
+                  for={:do_not_support_form}
+                  id={"do_not_support-form-#{expression.id}-#{group.id}"}
+                  phx-submit="my_support"
+                  class="columnn">
+
+                  <%= textarea f, :note, rows: 6, placeholder: "Explanation for why I do not support (optional)"%>
+                  <%= submit "I no not support", phx_disable_with: "Saving...", class: "small" %>
+
+                  <%= hidden_input f, :support, value: 0 %>
+                  <%= hidden_input f, :expression_id, value: expression.id %>
+                  <%= hidden_input f, :for_group_id, value: group.id %>
+
+                </.form>
+
+                <.form
+                  let={f}
+                  for={:object_form}
+                  id={"object-form-#{expression.id}-#{group.id}"}
+                  phx-submit="my_support"
+                  class="columnn">
+
+                  <%= textarea f, :note, rows: 6, placeholder: "This is spam (for example)" %>
+                  <%= submit "I object", phx_disable_with: "Saving...", class: "small" %>
+                  <%= hidden_input f, :support, value: -1 %>
+                  <%= hidden_input f, :expression_id, value: expression.id %>
+                  <%= hidden_input f, :for_group_id, value: group.id %>
+                </.form>
+
+              </div>
+          </div>
+        <% end %>
+      </div>
+  </section>
 <% end %>
 
 <%= if Enum.count(@my_expressions) != 0 do %>
-  <b>My Expressions</b>
-  <table>
-    <tbody id="my-expressions">
-      <%= for expression <- @my_expressions do %>
-        <tr id={"my-expression-#{expression.id}"}>
-          <td>
-            <ExpressionComponent.expression expression={expression} />
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+  <section>
+    <details>
+      <summary>
+        <b>My Expressions</b>
+      </summary>
+        <div id="my-expressions">
+          <%= for expression <- @my_expressions do %>
+            <div id={"my-expression-#{expression.id}"} class="roww">
+              <div>
+                <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+              </div>
+              <div>
+                <button class="small" phx-click="ignore" phx-value-expression_id={expression.id}>Ignore</button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+    </details>
+  </section>
+  <br>
 <% end %>
 
 <%= if Enum.count(@my_subscriptions) != 0 do %>
-  <b>My Subscriptions</b>
-  <table>
-    <tbody id="my-subscriptions">
+  <section>
+    <b>My Subscriptions</b>
+    <div id="my-subscriptions">
       <%= for expression <- @my_subscriptions do %>
-        <tr id={"my-subscription-#{expression.id}"}>
-          <td>
-            <ExpressionComponent.expression expression={expression} />
-          </td>
-          <td>
-            <button phx-click="unsubscribe" phx-value-expression_id={@expression.id}>Unsubscribe</button>
-          </td>
-        </tr>
+        <div id={"my-subscription-#{expression.id}"} class="roww">
+          <div>
+            <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+          </div>
+          <div>
+            <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Unsubscribe</button>
+          </div>
+        </div>
       <% end %>
-    </tbody>
-  </table>
+    </div>
+  </section>
 <% end %>
 
 <%= if Enum.count(@fully_supported_expressions) != 0 do %>
-  <b>Fully Supported Expressions</b>
-
-  <table>
-    <tbody id="fully-supported-expressions">
+  <section>
+    <b>Fully Supported Expressions</b>
+    <div id="fully-supported-expressions">
       <%= for expression <- @fully_supported_expressions do %>
-        <tr id={"supported-expression-#{expression.id}"}>
-          <td>
-            <ExpressionComponent.expression expression={expression} />
-          </td>
-          <td>
-            <button phx-click="subscribe" phx-value-expression_id={expression.id}>Subscribe</button>
-          </td>
-        </tr>
+        <div id={"supported-expression-#{expression.id}"} class="roww">
+          <div>
+            <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+          </div>
+          <div>
+            <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Subscribe</button>
+          </div>
+          <div>
+            <button class="small" phx-click="ignore" phx-value-expression_id={expression.id}>Ignore</button>
+          </div>
+        </div>
       <% end %>
-    </tbody>
-  </table>
+    </div>
+  </section>
 <% end %>
 
+<%= if Enum.count(@ignored_expressions) != 0 do %>
+  <section>
+    <details>
+      <summary>
+        <b>Expressions I have Ignored</b>
+      </summary>
+      <div id="ignored-expressions">
+        <%= for expression <- @ignored_expressions do %>
+          <div id={"supported-expression-#{expression.id}"} class="roww">
+            <div>
+              <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+            </div>
+            <div>
+              <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Subscribe</button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </details>
+  </section>
+<% end %>
+
+<br>
+
 <%= live_patch to: Routes.expression_index_path(@socket, :new) do %>
-  <button>
-    Create New Expression
-  </button>
+  <button>Create New Expression</button>
 <% end %>
 
 <br>

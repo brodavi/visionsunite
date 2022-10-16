@@ -9,6 +9,27 @@ body {
   color: #dddddd;
 }
 
+div {
+  margin: 0.5rem;
+  padding: 0.5rem;
+  /*
+  border: 2px solid #eeeeee;
+  border-radius: 5px;
+  */
+}
+
+.roww {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
+.columnn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 header {
   background: #222222;
 }
@@ -22,7 +43,7 @@ textarea {
   color: #eeeeee;
 }
 
-button {
+button.small {
   line-height: 0.66rem;
   height: 2rem;
   padding-left: 0.66rem;
@@ -30,7 +51,7 @@ button {
   font-size: 0.66rem;
 }
 
-code {
+code, pre {
   color: #222222;
 }
 

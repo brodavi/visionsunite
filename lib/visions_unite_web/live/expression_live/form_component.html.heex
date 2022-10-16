@@ -19,7 +19,7 @@
 
     <%= if Enum.count(@my_subscriptions) != 0 do %>
       <strong>Linked Expressions:</strong>
-      <%= for expression <- @expression.links do %>
+      <%= for expression <- @expression.linked_expressions do %>
         <div>
           <%= expression.title %> <small phx-click="remove_link" phx-value-link_id={expression.id}>remove</small>
         </div>
@@ -33,7 +33,7 @@
 
   <%= if Enum.count(@my_subscriptions) != 0 or Enum.count(@my_expressions) != 0 do %>
     <%= for expression <- Enum.uniq_by(Enum.concat(@my_expressions, @my_subscriptions), & &1.id) do %>
-      <input type="checkbox" phx-target={@myself} phx-click="toggle_linked_expressions" phx-value-id={expression.id} { if !is_nil(Enum.find(@links, & &1 == inspect expression.id)) do [checked: "checked"] else [] end } /> <%= expression.title %>
+      <input type="checkbox" phx-target={@myself} phx-click="toggle_linked_expressions" phx-value-id={expression.id} { if !is_nil(Enum.find(@linked_expressions, & &1 == inspect expression.id)) do [checked: "checked"] else [] end } /> <%= expression.title %>
     <% end %>
   <% end %>
 </div>

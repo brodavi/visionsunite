@@ -9,9 +9,26 @@ defmodule VisionsUnite.Expressions do
 
   alias VisionsUnite.Supports.Support
   alias VisionsUnite.Expressions.Expression
+  alias VisionsUnite.ExpressionLinkages
+  alias VisionsUnite.SeekingSupports
   alias VisionsUnite.SeekingSupports.SeekingSupport
+  alias VisionsUnite.FullySupporteds.FullySupported
   alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUnite.ExpressionSubscriptions.ExpressionSubscription
+
+  @doc """
+  Returns the preloaded expression or expressions
+
+  ## Examples
+
+      iex> preload(expressions)
+      [%Expression{linked_expressions: [%Expression{}, %Expression{}]}, ...]
+
+  """
+  def preload_links(expr) do
+    expr
+    |> Repo.preload(:linked_expressions)
+  end
 
   @doc """
   Returns the list of expressions.
@@ -24,7 +41,25 @@ defmodule VisionsUnite.Expressions do
   """
   def list_expressions do
     Repo.all(Expression)
-    |> Repo.preload(:links)
+  end
+
+  @doc """
+  Returns the list of expressions that this user has ignored
+
+  ## Examples
+
+      iex> list_ignoreded_expressions(user_id)
+      [%Expression{}, ...]
+
+  """
+  def list_ignored_expressions(user_id) do
+    ignored_query =
+      from e in Expression,
+      join: es in ExpressionSubscription,
+      on: es.expression_id == e.id and es.user_id == ^user_id,
+      where: es.subscribe == false
+
+    Repo.all(ignored_query)
   end
 
   @doc """
@@ -32,33 +67,37 @@ defmodule VisionsUnite.Expressions do
 
   ## Examples
 
-      iex> list_fully_supported_expressions()
+      iex> list_fully_supported_expressions(user_id)
       [%Expression{}, ...]
 
   """
   def list_fully_supported_expressions(user_id) do
-    expression_subscriptions =
+    group_ids =
       ExpressionSubscriptions.list_expression_subscriptions_for_user(user_id)
-      |> Enum.map(& &1.id)
+      |> Enum.map(& &1.expression_id)
 
-    # Get all fully supported root expressions
-    root_query = from e in Expression,
-      where: e.author_id != ^user_id and not is_nil(e.fully_supported)
-
-    root_expressions = Repo.all(root_query)
-
-    # Get all fully supported subscribed expressions
-    subscribed_query = from e in Expression,
-      where: e.author_id != ^user_id and not is_nil(e.fully_supported),
+    fully_supported_by_group_query =
+      from e in Expression,
+      join: fs in FullySupported,
+      on: fs.expression_id == e.id,
       join: es in ExpressionSubscription,
-      on: es.id in ^expression_subscriptions,
-      where: es.user_id != ^user_id
+      where: es.expression_id == fs.group_id and
+             fs.group_id in ^group_ids,
+      distinct: true
 
-    subscribed_expressions = Repo.all(subscribed_query)
+    fully_supported_expressions_by_group =
+      Repo.all(fully_supported_by_group_query)
 
-    Enum.concat(root_expressions, subscribed_expressions)
-    |> Enum.uniq()
-    |> Repo.preload(:links)
+    fully_supported_root_query =
+      from e in Expression,
+      join: fs in FullySupported,
+      on: fs.expression_id == e.id,
+      where: is_nil(fs.group_id)
+
+    fully_supported_root_expressions =
+      Repo.all(fully_supported_root_query)
+
+    fully_supported_root_expressions ++ fully_supported_expressions_by_group
   end
 
   @doc """
@@ -66,15 +105,19 @@ defmodule VisionsUnite.Expressions do
 
   ## Examples
 
-      iex> list_expressions_for_user(user_id)
+      iex> list_expressions_authored_by_user(user_id)
       [%Expression{}, ...]
 
   """
-  def list_expressions_for_user(user_id) do
-    query = from i in Expression,
-      where: i.author_id == ^user_id
+  def list_expressions_authored_by_user(user_id) do
+    # TODO this will, as advertised, return expressions authored by user
+    # NOTE this will return even expressions that the author has ignored
+    # SO! You should have another list in live.ex... "ignored expressions"
+    # ... then you can let the liveview handle the de-duping
+    query = from e in Expression,
+      where: e.author_id == ^user_id
+
     Repo.all(query)
-    |> Repo.preload(:links)
   end
 
   @doc """
@@ -93,7 +136,6 @@ defmodule VisionsUnite.Expressions do
       where: se.user_id == ^user_id
 
     Repo.all(query)
-    |> Repo.preload(:links)
   end
 
   @doc """
@@ -109,10 +151,10 @@ defmodule VisionsUnite.Expressions do
     query = from e in Expression,
       join: es in ExpressionSubscription,
       on: e.id == es.expression_id,
-      where: es.user_id == ^user_id and e.author_id != ^user_id
+      where: es.user_id == ^user_id and
+             es.subscribe == true
 
     Repo.all(query)
-    |> Repo.preload(:links)
   end
 
   @doc """
@@ -132,7 +174,24 @@ defmodule VisionsUnite.Expressions do
   def get_expression!(nil), do: nil
   def get_expression!(id) do
     Repo.get!(Expression, id)
-    |> Repo.preload(:links)
+  end
+
+  @doc """
+  Gets a single expression's title.
+
+  ## Examples
+
+      iex> get_expression_title(123)
+      "some expression title"
+  """
+  def get_expression_title(nil), do: nil
+  def get_expression_title(id) do
+    query =
+      from e in Expression,
+      where: e.id == ^id,
+      select: [:title]
+    result = Repo.one(query)
+    result.title
   end
 
   @doc """
@@ -148,14 +207,53 @@ defmodule VisionsUnite.Expressions do
 
   """
   def create_expression(attrs \\ %{}) do
-    {:ok, expression} =
-      %Expression{}
-      |> Expression.changeset(attrs)
-      |> Repo.insert()
+    %Expression{}
+    |> Expression.changeset(attrs)
+    |> Repo.insert()
+  end
 
-    {:ok,
-      expression
-      |> Repo.preload([:links])}
+  @doc """
+  Creates a expression with linked expressions.
+
+  ## Examples
+
+      iex> create_expression(%{field: value}, [3,5,2...])
+      {:ok, %Expression{}, seeking_supports}
+
+      iex> create_expression(%{field: bad_value}, [3,5,2...])
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_expression(attrs, linked_expressions) do
+    case create_expression(attrs) do
+      {:ok, expression} ->
+
+        # Try to link...
+        linked_expressions
+        |> Enum.each(fn linked_expression ->
+          ExpressionLinkages.create_expression_linkage(%{
+            expression_id: expression.id,
+            link_id: linked_expression
+          })
+        end)
+
+        # # Go ahead and subscribe to my own expression
+        # # TODO should I do this?
+        # ExpressionSubscriptions.create_expression_subscription(%{
+        #   expression_id: expression.id,
+        #   user_id: socket.assigns.current_user_id,
+        #   subscribe: true
+        # })
+
+        # Let's now seek supporters for this expression
+        seeking_supports =
+          SeekingSupports.seek_supporters(expression)
+
+        {:ok, expression, seeking_supports}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -173,21 +271,6 @@ defmodule VisionsUnite.Expressions do
   def update_expression(%Expression{} = expression, attrs) do
     expression
     |> Expression.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Marks an expression as fully supported
-
-  ## Examples
-
-      iex> mark_fully_supported(expression)
-      {:ok, %Expression{}}
-
-  """
-  def mark_fully_supported(%Expression{} = expression) do
-    expression
-    |> Expression.changeset(%{ fully_supported: DateTime.utc_now() })
     |> Repo.update()
   end
 
@@ -218,17 +301,6 @@ defmodule VisionsUnite.Expressions do
   """
   def change_expression(%Expression{} = expression, attrs \\ %{}) do
     Expression.changeset(expression, attrs)
-  end
-
-  def is_expression_fully_supported(expression, quorum) do
-    query = from e in Support, where: e.expression_id == ^expression.id
-    aggregate = Repo.aggregate(query, :sum, :support)
-    case aggregate do
-      nil ->
-        false
-      _ ->
-        aggregate >= quorum
-    end
   end
 end
 

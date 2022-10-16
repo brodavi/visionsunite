@@ -7,6 +7,8 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   alias VisionsUnite.Repo
 
+  alias VisionsUnite.Accounts
+  alias VisionsUnite.ExpressionLinkages
   alias VisionsUnite.ExpressionSubscriptions.ExpressionSubscription
   alias VisionsUnite.Expressions.Expression
 
@@ -31,11 +33,27 @@ defmodule VisionsUnite.ExpressionSubscriptions do
       iex> count_expression_subscriptions_for_expression(%Expression{})
       32
 
+      iex> count_expression_subscriptions_for_expression(482)
+      230
+
   """
-  def count_expression_subscriptions_for_expression(expression) do
+  def count_expression_subscriptions_for_expression(nil) do
+    Accounts.count_users()
+  end
+
+  def count_expression_subscriptions_for_expression(expression) when is_map(expression) do
     query =
       from es in ExpressionSubscription,
       where: es.expression_id == ^expression.id
+
+    Repo.aggregate(query, :count)
+  end
+
+  def count_expression_subscriptions_for_expression(expression_id) when is_number(expression_id) do
+    query = from es in ExpressionSubscription,
+      join: e in Expression,
+      on: e.id == es.expression_id,
+      where: e.id == ^expression_id
 
     Repo.aggregate(query, :count)
   end
@@ -45,9 +63,11 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   ## Examples
 
-      iex> list_expression_subscriptions_for_expression(expression)
+      iex> list_expression_subscriptions_for_expression(428)
       [%ExpressionSubscription{}, ...]
 
+      iex> list_expression_subscriptions_for_expression(%Expression{})
+      [%ExpressionSubscription{}, ...]
   """
   def list_expression_subscriptions_for_expression(expression_id) when is_number(expression_id) do
     query = from es in ExpressionSubscription,
@@ -91,7 +111,9 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   """
   def list_expression_subscriptions_for_user(user_id) do
-    query = from es in ExpressionSubscription, where: es.user_id == ^user_id
+    query =
+      from es in ExpressionSubscription,
+      where: es.user_id == ^user_id
     Repo.all(query)
   end
 
@@ -191,6 +213,78 @@ defmodule VisionsUnite.ExpressionSubscriptions do
   """
   def change_expression_subscription(%ExpressionSubscription{} = expression_subscription, attrs \\ %{}) do
     ExpressionSubscription.changeset(expression_subscription, attrs)
+  end
+
+  @doc """
+  This function gets the subscriber lists for an expression
+
+  This means it will follow all linked expressions (if there are any) and build a map of expressions and lists of users that subscribe to those linked expressions
+
+  If the expression does not have any linked expressions, this returns an empty map and can thus be interpreted as a "root expression"
+
+  ## Examples
+
+      iex> get_subscribers_maps(root_expression)
+      [%{nil => nil}]
+
+      iex> get_subscribers_maps(expression_with_linked_expressions)
+      [%{5 => [1,2,3]}, %{6 => [7,5,4]}, ...]
+  """
+  def get_subscribers_maps(expression) do
+    expression_linkages =
+      ExpressionLinkages.list_expression_linkages_for_expression(expression.id)
+
+    if Enum.count(expression_linkages) == 0 do
+      [%{nil => nil}] # note the sortition is pulled in SeekingSupports
+    else
+      subscribers_lists =
+        expression_linkages
+        |> Enum.map(fn expression_linkage ->
+          list_expression_subscriptions_for_expression(expression_linkage.link_id)
+          |> Enum.filter(& &1.user_id != expression.author_id)
+        end)
+
+      if Enum.count(Enum.at(subscribers_lists, 0)) == 0 do
+        # Subscribers list is STILL 0 (there are linked expressions, but still nobody is subscribed)
+        [%{nil => nil}] # note the sortition is pulled in SeekingSupports
+      else
+        subscribers_lists
+        |> Enum.map(fn subscriber_list ->
+          subscriber_list
+          |> Enum.group_by(& &1.expression_id)
+        end)
+      end
+    end
+  end
+
+  @doc """
+  This function gets only the aggregate counts, not the actual users of the map of subscribers for this expression and its linked_expressions
+
+  ## Examples
+
+      iex> get_subscriber_counts_maps(new_root_expression)
+      [%{}]
+
+      iex> get_subscriber_counts_maps(expression_with_linked_expressions)
+      [%{5 => 48}, %{6 => 28}, ...]
+  """
+  def get_subscriber_counts_maps(expression) do
+    expression_linkages =
+      ExpressionLinkages.list_expression_linkages_for_expression(expression.id)
+
+    if Enum.count(expression_linkages) == 0 do
+      # No linked expressions... "subscribers" is everyone
+      users_count =
+        Accounts.count_users() -1 # Minus one to account for author
+
+      [%{nil => users_count}]
+    else
+      expression_linkages
+      |> Enum.map(fn expression_linkage ->
+        count = count_expression_subscriptions_for_expression(expression_linkage.link_id)
+        %{expression_linkage.link_id => count}
+      end)
+    end
   end
 end
 

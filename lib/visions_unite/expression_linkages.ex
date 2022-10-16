@@ -32,7 +32,8 @@ defmodule VisionsUnite.ExpressionLinkages do
 
   """
   def list_expression_linkages_for_expression(expression_id) do
-    query = from ep in ExpressionLinkage, where: ep.expression_id == ^expression_id
+    query = from ep in ExpressionLinkage,
+      where: ep.expression_id == ^expression_id
     Repo.all(query)
   end
 
@@ -46,7 +47,8 @@ defmodule VisionsUnite.ExpressionLinkages do
 
   """
   def list_expression_linkages_for_link(link_id) do
-    query = from ep in ExpressionLinkage, where: ep.link_id == ^link_id
+    query = from ep in ExpressionLinkage,
+      where: ep.link_id == ^link_id
     Repo.all(query)
   end
 

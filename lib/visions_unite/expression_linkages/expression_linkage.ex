@@ -16,6 +16,7 @@ defmodule VisionsUnite.ExpressionLinkages.ExpressionLinkage do
     expression_linkage
     |> cast(attrs, [:expression_id, :link_id])
     |> validate_required([:expression_id, :link_id])
+    |> unique_constraint(:unique_link, name: :unique_link)
   end
 end
 

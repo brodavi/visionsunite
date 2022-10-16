@@ -10,6 +10,8 @@ defmodule VisionsUnite.Supports do
   alias VisionsUnite.Supports.Support
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions
+  alias VisionsUnite.ExpressionSubscriptions
+  alias VisionsUnite.FullySupporteds
 
   @doc """
   Returns the list of support.
@@ -57,26 +59,20 @@ defmodule VisionsUnite.Supports do
   end
 
   @doc """
-  Returns the latest support for a given expression.
+  This function returns the count of supports for a given expression for a given group.
 
   ## Examples
 
-      iex> get_latest_support_for_expression(expression)
-      %Support{}
-
-      iex> get_latest_support_for_expression(expression)
-      nil
+      iex> count_support_for_expression_for_group(expression, group_id)
+      83
 
   """
-  def get_latest_support_for_expression(expression) do
-    query = from e in Support,
-      where: e.expression_id == ^expression.id and e.support >= 0.0,
-      order_by: e.inserted_at,
-      limit: 1
+  def count_support_for_expression_for_group(expression, nil), do: count_support_for_expression(expression)
+  def count_support_for_expression_for_group(expression, group_id) do
+    query = from s in Support,
+      where: s.expression_id == ^expression.id and s.support > 0.0 and s.for_group_id == ^group_id
 
-    Repo.all(query)
-    |> Enum.map(& &1.inserted_at)
-    |> List.first()
+    Repo.aggregate(query, :count)
   end
 
   @doc """
@@ -108,63 +104,83 @@ defmodule VisionsUnite.Supports do
 
   """
   def create_support(attrs \\ %{}) do
-    support =
-      %Support{}
-      |> Support.changeset(attrs)
-      |> Repo.insert()
 
-    {:ok, %Support{ expression_id: expression_id, user_id: user_id }} = support
-
+    for_group_id = attrs.for_group_id
+    expression_id = attrs.expression_id
+    user_id = attrs.user_id
     expression = Expressions.get_expression!(expression_id)
     user = Accounts.get_user!(user_id)
 
-    # Remove the existing seeking support from the user that just clicked
     existing_seeking_support =
-      SeekingSupports.get_seeking_support_for_expression_and_user!(expression, user)
+      SeekingSupports.get_seeking_support_for_expression_and_user_for_group!(expression, user, for_group_id)
 
-    SeekingSupports.delete_seeking_support(existing_seeking_support)
+    if !is_nil(existing_seeking_support) do
+      support =
+        %Support{}
+        |> Support.changeset(attrs)
+        |> Repo.insert()
 
-    # Seeking Support has been deleted.... now we check for support
-    subscribers_map =
-      SeekingSupports.get_subscribers_map(expression)
+      {:ok, %Support{ expression_id: expression_id, user_id: user_id, for_group_id: for_group_id }} = support
 
-    quorum_map =
-      Map.keys(subscribers_map)
-      |> Map.new(fn group_id ->
-        sortition_size =
-          subscribers_map
-          |> Map.get(group_id)
-          |> Enum.count()
-          |> SeekingSupports.calculate_sortition_size()
 
-        quorum_size = Kernel.round(sortition_size * 0.51)
+      # Remove the existing seeking support from the user that just clicked
+      SeekingSupports.delete_seeking_support(existing_seeking_support)
 
-        {group_id, quorum_size}
+      # Seeking Support has been deleted.... now we check for support
+      subscriber_counts_maps =
+        ExpressionSubscriptions.get_subscriber_counts_maps(expression)
+
+      quorum_maps =
+        Enum.map(subscriber_counts_maps, fn subscriber_counts_map ->
+          group_id =
+            subscriber_counts_map
+            |> Map.keys()
+            |> List.first()
+
+          subscribers_count =
+            Map.get(subscriber_counts_map, group_id)
+
+          sortition_num =
+            SeekingSupports.calculate_sortition_size(subscribers_count)
+
+          quorum_size =
+            Kernel.round(sortition_num * 0.51)
+
+          %{group_id => quorum_size}
+        end)
+
+      Enum.each(quorum_maps, fn quorum_map ->
+        group_id =
+          quorum_map
+          |> Map.keys()
+          |> List.first()
+
+        if FullySupporteds.is_expression_fully_supported(expression, group_id) do
+
+          # if expression has been fully supported BY THIS GROUP, remove ALL seeking support
+          # FOR THIS GROUP because the goal has already been reached FOR THIS GROUP
+
+          SeekingSupports.delete_all_seeking_support_for_expression_with_group(expression, group_id)
+
+          # also, set the expression as fully supported (by creating some FullySupported rows for each group_id), because more users will screw up whether or not it is indeed
+
+          result = FullySupporteds.create_fully_supported(%{
+            expression_id: expression.id,
+            group_id: group_id
+          })
+
+          # then broadcast the support for all users
+          VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :expression_fully_supported, "support")
+        end
       end)
 
-    Map.keys(quorum_map)
-    |> Enum.each(fn group_id ->
+      # broadcast to everyone that an expression has been supported, regardless
+      # of whether or not it is fully supported
+      VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :expression_supported, "support")
 
-      if Expressions.is_expression_fully_supported(expression, Map.get(quorum_map, group_id)) do
-
-        # if expression has been fully supported, remove ALL seeking support
-        # because the goal has already been reached
-        SeekingSupports.delete_all_seeking_support_for_expression(expression)
-
-        # also, mark the expression as fully supported, because more users will screw up whether or not it is indeed
-        Expressions.mark_fully_supported(expression)
-
-        # then broadcast the support for all users
-        VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :expression_fully_supported, "support")
-      end
-    end)
-
-    # broadcast to everyone that an expression has been supported, regardless
-    # of whether or not it is fully supported
-    VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :expression_supported, "support")
-
-    # return the support
-    support
+      # return the support
+      support
+    end
   end
 
   @doc """

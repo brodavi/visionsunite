@@ -20,6 +20,7 @@ defmodule VisionsUnite.Supports.Support do
     supporting
     |> cast(attrs, [:user_id, :expression_id, :for_group_id, :support, :note])
     |> validate_required([:user_id, :expression_id, :support])
+    |> unique_constraint(:unique_support, name: :unique_support)
   end
 end
 
