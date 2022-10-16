@@ -41,7 +41,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
     socket =
       socket
-      |> assign(:debug, true) # NOTE turn on if you want to see linked expression data instead of just chicklet
+      |> assign(:debug, System.get_env("DEBUG")) # NOTE turn on if you want to see linked expression data instead of just chicklet
       |> assign(:audience, "everyone")
       |> assign(:current_user_id, user_id)
       |> assign(:my_expressions, my_expressions)
