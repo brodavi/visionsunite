@@ -1,13 +1,13 @@
 defmodule VisionsUniteWeb.ExpressionLive.Index do
   use VisionsUniteWeb, :live_view
 
-  alias VisionsUnite.SeekingSupports
-  alias VisionsUnite.Supports
-  alias VisionsUnite.FullySupporteds
   alias VisionsUnite.ExpressionLinkages
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.ExpressionSubscriptions
+  alias VisionsUnite.FullySupporteds
+  alias VisionsUnite.SeekingSupports
+  alias VisionsUnite.Supports
   alias VisionsUniteWeb.ExpressionComponent
 
   @impl true
@@ -41,8 +41,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
     socket =
       socket
-      |> assign(:debug, System.get_env("DEBUG")) # NOTE turn on if you want to see linked expression data instead of just chicklet
-      |> assign(:audience, "everyone")
+      |> assign(:debug, System.get_env("DEBUG"))
       |> assign(:current_user_id, user_id)
       |> assign(:my_expressions, my_expressions)
 
@@ -60,12 +59,6 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Expression")
-    |> assign(:expression, Expressions.get_expression!(id))
-  end
-
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Expression")
@@ -75,6 +68,12 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Expressions")
+    |> assign(:expression, nil)
+  end
+
+  defp apply_action(socket, :my_subscriptions, _params) do
+    socket
+    |> assign(:page_title, "My Expressions")
     |> assign(:expression, nil)
   end
 
@@ -327,8 +326,8 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
       expression =
         Expressions.get_expression!(ss.expression_id)
-        |> annotate_with_group_data()
-        |> annotate_with_linked_expressions()
+        |> Expression.annotate_with_group_data()
+        |> Expression.annotate_with_linked_expressions()
 
       group =
         if is_nil(ss.for_group_id) do
@@ -346,29 +345,29 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
   defp list_ignored_expressions(user_id) do
     Expressions.list_ignored_expressions(user_id)
-    |> annotate_with_group_data()
-    |> annotate_with_linked_expressions()
+    |> Expression.annotate_with_group_data()
+    |> Expression.annotate_with_linked_expressions()
   end
 
   defp list_fully_supported_expressions(user_id) do
     Expressions.list_fully_supported_expressions(user_id)
-    |> annotate_with_group_data()
-    |> annotate_with_linked_expressions()
-    |> annotate_with_fully_supporteds(user_id)
+    |> Expression.annotate_with_group_data()
+    |> Expression.annotate_with_linked_expressions()
+    |> Expression.annotate_with_fully_supporteds(user_id)
   end
 
   defp list_my_subscriptions(user_id) do
     Expressions.list_subscribed_expressions_for_user(user_id)
-    |> annotate_with_supports()
-    |> annotate_with_group_data()
-    |> annotate_with_linked_expressions()
+    |> Expression.annotate_with_supports()
+    |> Expression.annotate_with_group_data()
+    |> Expression.annotate_with_linked_expressions()
   end
 
   defp list_my_expressions(user_id) do
     Expressions.list_expressions_authored_by_user(user_id)
-    |> annotate_with_supports()
-    |> annotate_with_group_data()
-    |> annotate_with_linked_expressions()
+    |> Expression.annotate_with_supports()
+    |> Expression.annotate_with_group_data()
+    |> Expression.annotate_with_linked_expressions()
   end
 
   defp filter_members_of(expressions, reject_expressions) do
@@ -378,133 +377,6 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
         expression.id == expr.id
       end)
     end)
-  end
-
-  defp annotate_with_group_data(expressions) when is_list(expressions) do
-    expressions
-    |> Enum.map(fn expression ->
-      annotate_with_group_data(expression)
-    end)
-  end
-
-  defp annotate_with_group_data(expression) when is_map(expression) do
-
-    #
-    # TODO this should probably rely on expression.group_count!
-    #      instead of hitting the DB again
-    #
-
-    expression =
-      expression
-      |> Expressions.preload_links()
-
-    linkages_or_root =
-      if Enum.count(expression.expression_linkages) != 0 do
-        expression.expression_linkages
-      else
-        # This is hacky... there has to be a better way
-        [%{link: %{id: nil, title: "all"}}]
-      end
-
-    # annotate with link data
-    groups =
-      linkages_or_root
-      |> Enum.map(fn group ->
-        subscriber_count =
-          ExpressionSubscriptions.count_expression_subscriptions_for_expression(group.link.id)
-        quorum_count =
-          Kernel.round(SeekingSupports.calculate_sortition_size(subscriber_count) * 0.51)
-        support_count =
-          Supports.count_support_for_expression_for_group(expression, group.link.id)
-
-        Map.merge(
-          group,
-          %{
-            subscriber_count: subscriber_count,
-            quorum_count: quorum_count,
-            support_count: support_count
-          }
-        )
-      end)
-
-    # okay... if expression_linkages is [], then this is a
-    # root expression, and it will not populate with data..
-
-    Map.merge(expression, %{ groups: groups })
-  end
-
-  defp annotate_with_linked_expressions(expressions) when is_list(expressions) do
-    expressions
-    |> Enum.map(fn expression ->
-      annotate_with_linked_expressions(expression)
-    end)
-  end
-
-  defp annotate_with_linked_expressions(expression) when is_map(expression) do
-
-    #
-    # TODO this should probably rely on expression.group_count!
-    #      instead of hitting the DB again
-    #
-
-    expression =
-      expression
-      |> Expressions.preload_links()
-
-    # annotate with linked expression data
-    linked_expressions =
-      expression.expression_linkages
-      |> Enum.map(fn linked_expression ->
-        subscriber_count =
-          ExpressionSubscriptions.count_expression_subscriptions_for_expression(linked_expression.link.id)
-        quorum_count =
-          Kernel.round(SeekingSupports.calculate_sortition_size(subscriber_count) * 0.51)
-        support_count =
-          Supports.count_support_for_expression(linked_expression.link)
-
-        Map.merge(
-          linked_expression,
-          %{
-            subscriber_count: subscriber_count,
-            quorum_count: quorum_count,
-            support_count: support_count
-          }
-        )
-      end)
-
-    Map.merge(expression, %{ linked_expressions: linked_expressions })
-  end
-
-  defp annotate_with_supports(expressions) when is_list(expressions) do
-    expressions
-    |> Enum.map(fn expression ->
-      annotate_with_supports(expression)
-    end)
-  end
-
-  defp annotate_with_supports(expression) when is_map(expression) do
-    Map.merge(expression, %{
-      supports: Supports.list_supports_for_expression(expression)
-    })
-  end
-
-  defp annotate_with_fully_supporteds(expressions, user_id) when is_list(expressions) do
-    expressions
-    |> Enum.map(fn expression ->
-      annotate_with_fully_supporteds(expression, user_id)
-    end)
-  end
-
-  defp annotate_with_fully_supporteds(expression, user_id) when is_map(expression) do
-    fully_supporteds =
-      FullySupporteds.list_fully_supporteds_for_expression_and_user(expression.id, user_id)
-      |> Enum.map(fn fs ->
-        Expressions.get_expression_title(fs.group_id)
-      end)
-
-    Map.merge(expression, %{
-      fully_supporteds: fully_supporteds
-    })
   end
 end
 

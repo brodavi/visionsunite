@@ -1,0 +1,75 @@
+<NavComponent.nav active={"seeking_support"} />
+
+<br>
+
+<%= if Enum.count(@my_seeking_supports) != 0 do %>
+  <section>
+    <h3>Expressions Seeking Your Support</h3>
+      <div id="expressions-seeking-support">
+        <%= for %{expression: expression, group: group} <- @my_seeking_supports do %>
+          <div id={"seeking-support-#{expression.id}-#{group.id}"} class="roww">
+            <div>
+              <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+            </div>
+
+            <div>
+              For group: <%= group.title %>
+            </div>
+
+              <div class="roww">
+
+                <.form
+                  let={f}
+                  for={:support_form}
+                  id={"support-form-#{expression.id}-#{group.id}"}
+                  phx-submit="my_support"
+                  class="columnn">
+
+                  <%= textarea f, :note, rows: 6, placeholder: "Reasons for why you support (optional)" %>
+                  <%= submit "I support", phx_disable_with: "Saving...", class: "small" %>
+
+                  <%= hidden_input f, :support, value: 1 %>
+                  <%= hidden_input f, :expression_id, value: expression.id %>
+                  <%= hidden_input f, :for_group_id, value: group.id %>
+
+                </.form>
+
+                <.form
+                  let={f}
+                  for={:do_not_support_form}
+                  id={"do_not_support-form-#{expression.id}-#{group.id}"}
+                  phx-submit="my_support"
+                  class="columnn">
+
+                  <%= textarea f, :note, rows: 6, placeholder: "Explanation for why I do not support (optional)"%>
+                  <%= submit "I do not support", phx_disable_with: "Saving...", class: "small" %>
+
+                  <%= hidden_input f, :support, value: 0 %>
+                  <%= hidden_input f, :expression_id, value: expression.id %>
+                  <%= hidden_input f, :for_group_id, value: group.id %>
+
+                </.form>
+
+                <.form
+                  let={f}
+                  for={:object_form}
+                  id={"object-form-#{expression.id}-#{group.id}"}
+                  phx-submit="my_support"
+                  class="columnn">
+
+                  <%= textarea f, :note, rows: 6, placeholder: "This is spam (for example)" %>
+                  <%= submit "I object", phx_disable_with: "Saving...", class: "small" %>
+                  <%= hidden_input f, :support, value: -1 %>
+                  <%= hidden_input f, :expression_id, value: expression.id %>
+                  <%= hidden_input f, :for_group_id, value: group.id %>
+                </.form>
+
+              </div>
+          </div>
+        <% end %>
+      </div>
+  </section>
+<% end %>
+
+<%= link "Style 1", to: "/v1/expressions" %>
+

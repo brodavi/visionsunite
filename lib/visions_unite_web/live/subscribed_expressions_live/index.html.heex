@@ -1,0 +1,24 @@
+<NavComponent.nav active={"my_subscriptions"} />
+
+<br>
+
+<%= if Enum.count(@my_subscriptions) != 0 do %>
+  <section>
+    <h3>My Subscriptions</h3>
+    <div id="my-subscriptions">
+      <%= for expression <- @my_subscriptions do %>
+        <div id={"my-subscription-#{expression.id}"} class="roww">
+          <div>
+            <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+          </div>
+          <div>
+            <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Unsubscribe</button>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<%= link "Style 1", to: "/v1/expressions" %>
+

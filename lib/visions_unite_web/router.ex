@@ -83,14 +83,15 @@ defmodule VisionsUniteWeb.Router do
     put "/users/settings", UserSettingsController, :update
     get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
 
-    live "/expressions", ExpressionLive.Index, :index
-    live "/expressions/new", ExpressionLive.Index, :new
-    live "/expressions/:id/edit", ExpressionLive.Index, :edit
+    live "/v1/expressions", ExpressionLive.Index, :index
+    live "/v1/expressions/new", ExpressionLive.Index, :new
 
-    live "/expressions/:id", ExpressionLive.Show, :show
-    live "/expressions/:id/show/edit", ExpressionLive.Show, :edit
-
-    resources "/support", SupportController
+    live "/v2/expressions", ExpressionLive.Index, :index
+    live "/v2/expressions_seeking_my_support", ExpressionsSeekingMySupportLive.Index, :index
+    live "/v2/fully_supported_expressions", FullySupportedExpressionsLive.Index, :index
+    live "/v2/ignored_expressions", IgnoredExpressionsLive.Index, :index
+    live "/v2/my_subscriptions", MySubscriptionsLive.Index, :index
+    live "/v2/my_expressions", MyExpressionsLive.Index, :index
   end
 
   scope "/", VisionsUniteWeb do
@@ -103,3 +104,4 @@ defmodule VisionsUniteWeb.Router do
     post "/users/confirm/:token", UserConfirmationController, :update
   end
 end
+

@@ -3,7 +3,7 @@ defmodule VisionsUniteWeb.ExpressionComponent do
 
   def expression(assigns) do
     ~H"""
-    <h3>
+    <p>
       <b>
         <%= @expression.title %>
       </b>
@@ -19,7 +19,7 @@ defmodule VisionsUniteWeb.ExpressionComponent do
         </small>
         </small>
       <% end %>
-    </h3>
+    </p>
 
     <small><%= @expression.body %></small>
 

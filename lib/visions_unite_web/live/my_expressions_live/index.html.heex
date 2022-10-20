@@ -1,0 +1,25 @@
+<NavComponent.nav active={"my_expressions"} />
+
+<br>
+
+<%= if Enum.count(@my_expressions) != 0 do %>
+  <section>
+    <h3>My Expressions</h3>
+    <div id="my-expressions">
+      <%= for expression <- @my_expressions do %>
+        <div id={"my-expression-#{expression.id}"} class="roww">
+          <div>
+            <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+          </div>
+          <div>
+            <button class="small" phx-click="ignore" phx-value-expression_id={expression.id}>Ignore</button>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+  <br>
+<% end %>
+
+<%= link "Style 1", to: "/v1/expressions" %>
+

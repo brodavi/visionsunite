@@ -30,6 +30,18 @@ div {
   gap: 0.5rem;
 }
 
+nav > a {
+  display: inline-block;
+  padding: 0.5rem;
+  background: #bbbbbb;
+}
+
+nav > a.active {
+  border: solid #eeeeee 3px;
+  background: #eeeeee;
+  pointer-events: none;
+}
+
 header {
   background: #222222;
 }

@@ -1,0 +1,27 @@
+<NavComponent.nav active={"fully_supported"} />
+
+<br>
+
+<%= if Enum.count(@fully_supported_expressions) != 0 do %>
+  <section>
+    <h3>Fully Supported Expressions</h3>
+    <div id="fully-supported-expressions">
+      <%= for expression <- @fully_supported_expressions do %>
+        <div id={"supported-expression-#{expression.id}"} class="roww">
+          <div>
+            <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+          </div>
+          <div>
+            <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Subscribe</button>
+          </div>
+          <div>
+            <button class="small" phx-click="ignore" phx-value-expression_id={expression.id}>Ignore</button>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<%= link "Style 1", to: "/v1/expressions" %>
+

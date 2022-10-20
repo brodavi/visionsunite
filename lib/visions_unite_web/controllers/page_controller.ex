@@ -5,7 +5,7 @@ defmodule VisionsUniteWeb.PageController do
     if is_nil(conn.assigns.current_user) do
       render(conn, "index.html")
     else
-      redirect(conn, to: "/expressions")
+      redirect(conn, to: "/v1/expressions")
     end
   end
 end
