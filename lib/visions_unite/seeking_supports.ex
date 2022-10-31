@@ -217,7 +217,7 @@ defmodule VisionsUnite.SeekingSupports do
     else
       Enum.map(subscriptions_maps, fn subscription_map ->
 
-        if subscription_map == %{nil: nil} do
+        if subscription_map == %{nil: nil} or subscription_map == %{} do
           %{nil => []}
         else
           group_id =

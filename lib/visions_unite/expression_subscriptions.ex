@@ -78,7 +78,8 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   def list_expression_subscriptions_for_expression(expression) when is_map(expression) do
     query = from es in ExpressionSubscription,
-      where: es.expression_id == ^expression.id
+      where: es.expression_id == ^expression.id and
+             es.subscribe == true
 
     Repo.all(query)
   end
