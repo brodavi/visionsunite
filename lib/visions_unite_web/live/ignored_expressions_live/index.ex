@@ -35,7 +35,7 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Listing Expressions Seeking My Support")
+    |> assign(:page_title, "Listing Ignored Expressions")
   end
 
   @impl true

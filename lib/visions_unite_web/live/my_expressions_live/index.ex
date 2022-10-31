@@ -25,10 +25,15 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
       list_my_expressions(user_id)
       |> filter_members_of(ignored_expressions)
 
+    my_subscriptions =
+      list_my_subscriptions(user_id)
+      |> filter_members_of(my_expressions)
+
     socket =
       socket
       |> assign(:current_user_id, user_id)
       |> assign(:my_expressions, my_expressions)
+      |> assign(:my_subscriptions, my_subscriptions)
     {:ok, socket}
   end
 
@@ -39,7 +44,13 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Listing Expressions Seeking My Support")
+    |> assign(:page_title, "Listing My Expressions")
+  end
+
+  defp apply_action(socket, :new, _params) do
+    socket
+    |> assign(:page_title, "Visions Unite - New Expression")
+    |> assign(:expression, %Expression{linked_expressions: []})
   end
 
   #
@@ -88,6 +99,13 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
 
   defp list_ignored_expressions(user_id) do
     Expressions.list_ignored_expressions(user_id)
+  end
+
+  defp list_my_subscriptions(user_id) do
+    Expressions.list_subscribed_expressions_for_user(user_id)
+    |> Expression.annotate_with_supports()
+    |> Expression.annotate_with_group_data()
+    |> Expression.annotate_with_linked_expressions()
   end
 
   defp list_my_expressions(user_id) do

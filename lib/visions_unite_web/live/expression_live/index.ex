@@ -35,6 +35,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
       list_fully_supported_expressions(user_id)
       |> filter_members_of(ignored_expressions)
       |> filter_members_of(my_subscriptions)
+      |> filter_members_of(my_expressions)
 
     my_seeking_supports =
       list_my_seeking_supports(user_id)
@@ -134,6 +135,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
     my_expressions =
       list_my_expressions(user_id)
+      |> filter_members_of(ignored_expressions)
 
     my_subscriptions =
       list_my_subscriptions(user_id)
@@ -143,13 +145,15 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
       list_fully_supported_expressions(user_id)
       |> filter_members_of(ignored_expressions)
       |> filter_members_of(my_subscriptions)
+      |> filter_members_of(my_expressions)
 
     socket =
       socket
       |> put_flash(:info, "Successfully subscribed to expression. Thank you!")
+      |> assign(:ignored_expressions, ignored_expressions)
+      |> assign(:my_expressions, my_expressions)
       |> assign(:my_subscriptions, my_subscriptions)
       |> assign(:fully_supported_expressions, fully_supported_expressions)
-      |> assign(:ignored_expressions, ignored_expressions)
     {:noreply, socket}
   end
 

@@ -1,5 +1,21 @@
 <NavComponent.nav active={"my_expressions"} />
 
+<%= if @live_action in [:new, :edit] do %>
+  <.modal return_to={Routes.expression_index_path(@socket, :index)}>
+    <.live_component
+      module={VisionsUniteWeb.ExpressionLive.FormComponent}
+      id={@expression.id || :new}
+      title={@page_title}
+      action={@live_action}
+      expression={@expression}
+      my_subscriptions={@my_subscriptions}
+      my_expressions={@my_expressions}
+      current_user_id={@current_user_id}
+      return_to={Routes.expression_index_path(@socket, :index)}
+    />
+  </.modal>
+<% end %>
+
 <br>
 
 <%= if Enum.count(@my_expressions) != 0 do %>
@@ -21,5 +37,9 @@
   <br>
 <% else %>
   <h3>You have created no expressions (yet!).</h3>
+<% end %>
+
+<%= live_patch to: Routes.expression_index_path(@socket, :new) do %>
+  <button>Create New Expression</button>
 <% end %>
 
