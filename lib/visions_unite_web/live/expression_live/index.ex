@@ -41,7 +41,6 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
     socket =
       socket
-      |> assign(:debug, System.get_env("DEBUG"))
       |> assign(:current_user_id, user_id)
       |> assign(:my_expressions, my_expressions)
 
@@ -61,19 +60,13 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
   defp apply_action(socket, :new, _params) do
     socket
-    |> assign(:page_title, "New Expression")
+    |> assign(:page_title, "Visions Unite - New Expression")
     |> assign(:expression, %Expression{linked_expressions: []})
   end
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Listing Expressions")
-    |> assign(:expression, nil)
-  end
-
-  defp apply_action(socket, :my_subscriptions, _params) do
-    socket
-    |> assign(:page_title, "My Expressions")
+    |> assign(:page_title, "Visions Unite - Listing Expressions")
     |> assign(:expression, nil)
   end
 
@@ -118,11 +111,23 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   def handle_event("subscribe", %{"expression_id" => expression_id}, socket) do
     user_id = socket.assigns.current_user_id
 
-    ExpressionSubscriptions.create_expression_subscription(%{
-      expression_id: expression_id,
-      user_id: user_id,
-      subscribe: true
-    })
+    existing_subscription =
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+
+    case existing_subscription do
+      nil ->
+        ExpressionSubscriptions.create_expression_subscription(%{
+          expression_id: expression_id,
+          user_id: user_id,
+          subscribe: true
+        })
+      _ ->
+        ExpressionSubscriptions.update_expression_subscription(
+          existing_subscription, %{
+            subscribe: true
+          }
+        )
+    end
 
     ignored_expressions =
       list_ignored_expressions(user_id)
@@ -162,21 +167,20 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     existing_subscription =
       ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
 
-    result =
-      case existing_subscription do
-        nil ->
-          ExpressionSubscriptions.create_expression_subscription(%{
-            expression_id: expression_id,
-            user_id: user_id,
+    case existing_subscription do
+      nil ->
+        ExpressionSubscriptions.create_expression_subscription(%{
+          expression_id: expression_id,
+          user_id: user_id,
+          subscribe: false
+        })
+      _ ->
+        ExpressionSubscriptions.update_expression_subscription(
+          existing_subscription, %{
             subscribe: false
-          })
-        _ ->
-          ExpressionSubscriptions.update_expression_subscription(
-            existing_subscription, %{
-              subscribe: false
-            }
-          )
-      end
+          }
+        )
+    end
 
     ignored_expressions =
       list_ignored_expressions(user_id)

@@ -18,6 +18,14 @@ div {
   */
 }
 
+details > div {
+  padding: 1rem;
+  position: absolute;
+  background: #444444;
+  border: 2px solid #222222;
+  border-radius: 5px;
+}
+
 .roww {
   display: flex;
   flex-direction: row;
@@ -189,3 +197,4 @@ code, pre {
 .column {
   margin: 10px;
 }
+

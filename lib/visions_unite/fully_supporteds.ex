@@ -153,13 +153,12 @@ defmodule VisionsUnite.FullySupporteds do
     aggregate =
       Repo.aggregate(query, :sum, :support)
 
-    total_support =
-      Kernel.round(aggregate)
-
-    case total_support do
+    case aggregate do
       nil ->
         false
       _ ->
+        total_support =
+          Kernel.round(aggregate)
         total_support >= quorum
     end
   end

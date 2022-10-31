@@ -4,30 +4,26 @@ defmodule VisionsUniteWeb.ExpressionComponent do
   def expression(assigns) do
     ~H"""
     <p>
-      <b>
-        <%= @expression.title %>
-      </b>
-
       <%= if is_list(@expression.fully_supporteds) and Enum.count(@expression.fully_supporteds) !== 0 do %>
-        <small>
-        <small>
-          ( because you are subscribed to:
-          <%= for fs <- @expression.fully_supporteds do %>
-            <%= fs %>&nbsp;
-          <% end %>
-          )
-        </small>
-        </small>
+        <b>
+          / <%= Enum.join(@expression.fully_supporteds, ", ") %> / <%= @expression.title %>
+        </b>
+      <% else %>
+        <%= if Map.has_key?(assigns, :group) do %>
+          <b>/ <%= @group %> / <%= @expression.title %></b>
+        <% else %>
+          <b>/ <%= @expression.title %></b>
+        <% end %>
       <% end %>
     </p>
 
-    <small><%= @expression.body %></small>
+    <%= @expression.body %>
 
     <%= if @expression.author_id == @current_user_id and Map.has_key?(@expression, :supports) and Enum.count(@expression.supports) != 0 do %>
       <small>
         <details>
           <summary>
-            <b>User feedback:</b>
+            user feedback
           </summary>
           <ul>
             <%= for support <- @expression.supports do %>
@@ -38,56 +34,27 @@ defmodule VisionsUniteWeb.ExpressionComponent do
       </small>
     <% end %>
 
-    <%= if @debug do %>
-      <small>
+    <small>
+      <details>
+        <summary>
+          more information
+        </summary>
 
-        <%= if false do %>
-          <%= for linked_expression <- @expression.linked_expressions do %>
-            <details>
-              <summary>
-                #<%= linked_expression.link.title %>
-              </summary>
-              Linked expression: <code><%= linked_expression.link.title %></code> is supported by <%= linked_expression.support_count %> subscribers. (<%= linked_expression.quorum_count %> out of <%= linked_expression.subscriber_count %> are needed to be fully supported)
-            </details>
-          <% end %>
-        <% else %>
-          <div>
-            <%= for linked_expression <- @expression.linked_expressions do %>
-              #<%= linked_expression.link.title %>
-            <% end %>
-          </div>
-        <% end %>
-
-        <details>
-          <summary>
-            support details
-          </summary>
+        <div>
           <%= for group <- @expression.groups do %>
-            <div>
-              This expression needs support from <%= group.quorum_count %> out of <%= group.subscriber_count %>
+            <p>
+              This expression (<%= @expression.title %>) needs support from <%= group.quorum_count %> out of <%= group.subscriber_count %>
 
               <%= if is_nil(group.link.id) do %>
                 of <b>all users</b> to be fully supported as a root expression.
               <% else %>
-              <code><%= group.link.title %></code> subscribers to be fully supported for the <%= group.link.title %> group.
+              <code><%= group.link.title %></code> subscribers to be fully supported for the <%= group.link.title %> group. Currently <%= group.support_count %> supporting.
               <% end %>
-
-              <br>
-              Currently <%= group.support_count %> supporting.
-            </div>
+            </p>
           <% end %>
-        </details>
-
-      </small>
-
-
-    <% else %>
-      <div>
-        <%= for linked_expression <- @expression.linked_expressions do %>
-          <small><i>#<%= linked_expression.link.title %></i></small>
-        <% end %>
-      </div>
-    <% end %>
+        </div>
+      </details>
+    </small>
     """
   end
 end

@@ -9,7 +9,6 @@
       expression={@expression}
       my_subscriptions={@my_subscriptions}
       my_expressions={@my_expressions}
-      audience={@audience}
       current_user_id={@current_user_id}
       return_to={Routes.expression_index_path(@socket, :index)}
     />
@@ -23,7 +22,7 @@
         <%= for %{expression: expression, group: group} <- @my_seeking_supports do %>
           <div id={"seeking-support-#{expression.id}-#{group.id}"} class="roww">
             <div>
-              <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
             </div>
 
             <div>
@@ -96,7 +95,7 @@
           <%= for expression <- @my_expressions do %>
             <div id={"my-expression-#{expression.id}"} class="roww">
               <div>
-                <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+                <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
               </div>
               <div>
                 <button class="small" phx-click="ignore" phx-value-expression_id={expression.id}>Ignore</button>
@@ -116,7 +115,7 @@
       <%= for expression <- @my_subscriptions do %>
         <div id={"my-subscription-#{expression.id}"} class="roww">
           <div>
-            <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+            <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
           </div>
           <div>
             <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Unsubscribe</button>
@@ -134,7 +133,7 @@
       <%= for expression <- @fully_supported_expressions do %>
         <div id={"supported-expression-#{expression.id}"} class="roww">
           <div>
-            <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+            <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
           </div>
           <div>
             <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Subscribe</button>
@@ -159,7 +158,7 @@
         <%= for expression <- @ignored_expressions do %>
           <div id={"supported-expression-#{expression.id}"} class="roww">
             <div>
-              <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
             </div>
             <div>
               <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Subscribe</button>
@@ -176,9 +175,4 @@
 <%= live_patch to: Routes.expression_index_path(@socket, :new) do %>
   <button>Create New Expression</button>
 <% end %>
-
-<br>
-<br>
-
-<%= link "Style 2", to: "/v2/fully_supported_expressions" %>
 

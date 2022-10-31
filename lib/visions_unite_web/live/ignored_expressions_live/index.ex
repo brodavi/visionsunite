@@ -4,6 +4,7 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
+  alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUniteWeb.ExpressionComponent
   alias VisionsUniteWeb.NavComponent
 
@@ -22,7 +23,6 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
 
     socket =
       socket
-      |> assign(:debug, System.get_env("DEBUG"))
       |> assign(:current_user_id, user_id)
       |> assign(:ignored_expressions, ignored_expressions)
     {:ok, socket}
@@ -42,11 +42,22 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
   def handle_event("subscribe", %{"expression_id" => expression_id}, socket) do
     user_id = socket.assigns.current_user_id
 
-    ExpressionSubscriptions.create_expression_subscription(%{
-      expression_id: expression_id,
-      user_id: user_id,
-      subscribe: true
-    })
+    existing_subscription =
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+
+    case existing_subscription do
+      nil ->
+        ExpressionSubscriptions.create_expression_subscription(%{
+          expression_id: expression_id,
+          user_id: user_id,
+          subscribe: true
+        })
+      _ ->
+        existing_subscription
+        |> ExpressionSubscriptions.update_expression_subscription(%{
+          subscribe: true
+        })
+    end
 
     ignored_expressions =
       list_ignored_expressions(user_id)
@@ -57,7 +68,6 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
       |> assign(:ignored_expressions, ignored_expressions)
     {:noreply, socket}
   end
-
 
   defp list_ignored_expressions(user_id) do
     Expressions.list_ignored_expressions(user_id)

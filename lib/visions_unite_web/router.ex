@@ -86,7 +86,7 @@ defmodule VisionsUniteWeb.Router do
     live "/v1/expressions", ExpressionLive.Index, :index
     live "/v1/expressions/new", ExpressionLive.Index, :new
 
-    live "/v2/expressions", ExpressionLive.Index, :index
+    live "/v2/expressions", ExpressionsSeekingMySupportLive.Index, :index
     live "/v2/expressions_seeking_my_support", ExpressionsSeekingMySupportLive.Index, :index
     live "/v2/fully_supported_expressions", FullySupportedExpressionsLive.Index, :index
     live "/v2/ignored_expressions", IgnoredExpressionsLive.Index, :index

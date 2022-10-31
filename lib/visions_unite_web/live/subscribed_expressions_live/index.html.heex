@@ -9,7 +9,7 @@
       <%= for expression <- @my_subscriptions do %>
         <div id={"my-subscription-#{expression.id}"} class="roww">
           <div>
-            <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
+            <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
           </div>
           <div>
             <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Unsubscribe</button>
@@ -18,7 +18,7 @@
       <% end %>
     </div>
   </section>
+<% else %>
+  <h3>You have not subscribed to any expressions.</h3>
 <% end %>
-
-<%= link "Style 1", to: "/v1/expressions" %>
 

@@ -6,7 +6,7 @@ defmodule VisionsUniteWeb.NavComponent do
     ~H"""
     <nav>
       <%= if @active == "seeking_support" do %>
-        <a href="#" class="active">Fully Supported</a>
+        <a href="#" class="active">Seeking Support</a>
       <% else %>
         <%= link "Seeking Support", to: "/v2/expressions_seeking_my_support" %>
       <% end %>

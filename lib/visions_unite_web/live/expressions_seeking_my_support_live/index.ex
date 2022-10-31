@@ -1,6 +1,7 @@
 defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
   use VisionsUniteWeb, :live_view
 
+  alias VisionsUnite.Supports
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
@@ -22,7 +23,6 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
 
     socket =
       socket
-      |> assign(:debug, System.get_env("DEBUG"))
       |> assign(:current_user_id, user_id)
       |> assign(:my_seeking_supports, my_seeking_supports)
     {:ok, socket}

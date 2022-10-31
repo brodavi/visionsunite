@@ -4,6 +4,7 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
+  alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUniteWeb.ExpressionComponent
   alias VisionsUniteWeb.NavComponent
 
@@ -20,13 +21,8 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
     ignored_expressions =
       list_ignored_expressions(user_id)
 
-    my_expressions =
-      list_my_expressions(user_id)
-      |> filter_members_of(ignored_expressions)
-
     my_subscriptions =
       list_my_subscriptions(user_id)
-      |> filter_members_of(my_expressions)
 
     fully_supported_expressions =
       list_fully_supported_expressions(user_id)
@@ -35,7 +31,6 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
 
     socket =
       socket
-      |> assign(:debug, System.get_env("DEBUG"))
       |> assign(:current_user_id, user_id)
       |> assign(:fully_supported_expressions, fully_supported_expressions)
     {:ok, socket}
@@ -55,21 +50,29 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
   def handle_event("subscribe", %{"expression_id" => expression_id}, socket) do
     user_id = socket.assigns.current_user_id
 
-    ExpressionSubscriptions.create_expression_subscription(%{
-      expression_id: expression_id,
-      user_id: user_id,
-      subscribe: true
-    })
+    existing_subscription =
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+
+    case existing_subscription do
+      nil ->
+        ExpressionSubscriptions.create_expression_subscription(%{
+          expression_id: expression_id,
+          user_id: user_id,
+          subscribe: true
+        })
+      _ ->
+        ExpressionSubscriptions.update_expression_subscription(
+          existing_subscription, %{
+            subscribe: true
+          }
+        )
+    end
 
     ignored_expressions =
       list_ignored_expressions(user_id)
 
-    my_expressions =
-      list_my_expressions(user_id)
-
     my_subscriptions =
       list_my_subscriptions(user_id)
-      |> filter_members_of(my_expressions)
 
     fully_supported_expressions =
       list_fully_supported_expressions(user_id)
@@ -79,9 +82,7 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
     socket =
       socket
       |> put_flash(:info, "Successfully subscribed to expression. Thank you!")
-      |> assign(:my_subscriptions, my_subscriptions)
       |> assign(:fully_supported_expressions, fully_supported_expressions)
-      |> assign(:ignored_expressions, ignored_expressions)
     {:noreply, socket}
   end
 
@@ -99,32 +100,26 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
     existing_subscription =
       ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
 
-    result =
-      case existing_subscription do
-        nil ->
-          ExpressionSubscriptions.create_expression_subscription(%{
-            expression_id: expression_id,
-            user_id: user_id,
+    case existing_subscription do
+      nil ->
+        ExpressionSubscriptions.create_expression_subscription(%{
+          expression_id: expression_id,
+          user_id: user_id,
+          subscribe: false
+        })
+      _ ->
+        ExpressionSubscriptions.update_expression_subscription(
+          existing_subscription, %{
             subscribe: false
-          })
-        _ ->
-          ExpressionSubscriptions.update_expression_subscription(
-            existing_subscription, %{
-              subscribe: false
-            }
-          )
-      end
+          }
+        )
+    end
 
     ignored_expressions =
       list_ignored_expressions(user_id)
 
-    my_expressions =
-      list_my_expressions(user_id)
-      |> filter_members_of(ignored_expressions)
-
     my_subscriptions =
       list_my_subscriptions(user_id)
-      |> filter_members_of(my_expressions)
 
     fully_supported_expressions =
       list_fully_supported_expressions(user_id)
@@ -135,8 +130,6 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
       socket
       |> put_flash(:info, "Successfully ignored expression.")
       |> assign(:fully_supported_expressions, fully_supported_expressions)
-      |> assign(:ignored_expressions, ignored_expressions)
-      |> assign(:my_expressions, my_expressions)
 
     {:noreply, socket}
   end
@@ -147,10 +140,6 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
 
   defp list_my_subscriptions(user_id) do
     Expressions.list_subscribed_expressions_for_user(user_id)
-  end
-
-  defp list_my_expressions(user_id) do
-    Expressions.list_expressions_authored_by_user(user_id)
   end
 
   defp list_fully_supported_expressions(user_id) do

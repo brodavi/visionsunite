@@ -9,11 +9,7 @@
         <%= for %{expression: expression, group: group} <- @my_seeking_supports do %>
           <div id={"seeking-support-#{expression.id}-#{group.id}"} class="roww">
             <div>
-              <ExpressionComponent.expression expression={expression} debug={@debug} current_user_id={@current_user_id} />
-            </div>
-
-            <div>
-              For group: <%= group.title %>
+              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} group={group.title} />
             </div>
 
               <div class="roww">
@@ -69,7 +65,7 @@
         <% end %>
       </div>
   </section>
+<% else %>
+  <h3>There are no expressions currently seeking your support.</h3>
 <% end %>
-
-<%= link "Style 1", to: "/v1/expressions" %>
 

@@ -4,6 +4,7 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
+  alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUniteWeb.ExpressionComponent
   alias VisionsUniteWeb.NavComponent
 
@@ -26,7 +27,6 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
 
     socket =
       socket
-      |> assign(:debug, System.get_env("DEBUG"))
       |> assign(:current_user_id, user_id)
       |> assign(:my_subscriptions, my_subscriptions)
     {:ok, socket}
@@ -35,6 +35,30 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  @impl true
+  def handle_event("unsubscribe", %{"expression_id" => expression_id}, socket) do
+    user_id = socket.assigns.current_user_id
+
+    expression_subscription =
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+
+    ExpressionSubscriptions.delete_expression_subscription(expression_subscription)
+
+    my_expressions =
+      list_my_expressions(user_id)
+
+    my_subscriptions =
+      list_my_subscriptions(user_id)
+      |> filter_members_of(my_expressions)
+
+    socket =
+      socket
+      |> put_flash(:info, "Successfully unsubscribed from expression.")
+      |> assign(:my_subscriptions, my_subscriptions)
+
+    {:noreply, socket}
   end
 
   defp apply_action(socket, :index, _params) do
@@ -62,5 +86,4 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
     end)
   end
 end
-
 
