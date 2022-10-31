@@ -59,6 +59,7 @@ input {
 }
 
 textarea {
+  min-width: 13rem;
   font-size: 0.9rem;
   color: #eeeeee;
 }

@@ -12,55 +12,41 @@
               <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} group={group.title} />
             </div>
 
-              <div class="roww">
+            <div class="roww">
 
-                <.form
-                  let={f}
-                  for={:support_form}
-                  id={"support-form-#{expression.id}-#{group.id}"}
-                  phx-submit="my_support"
-                  class="columnn">
+              <.form
+                let={f}
+                for={:support_form}
+                id={"support-form-#{expression.id}-#{group.id}"}
+                phx-submit="my_support"
+                class="columnn">
 
-                  <%= textarea f, :note, rows: 6, placeholder: "Reasons for why you support (optional)" %>
-                  <%= submit "I support", phx_disable_with: "Saving...", class: "small" %>
+                <%= textarea f, :note, rows: 6, placeholder: "Reasons for why you support (optional)" %>
+                <%= submit "I support", phx_disable_with: "Saving...", class: "small" %>
 
-                  <%= hidden_input f, :support, value: 1 %>
-                  <%= hidden_input f, :expression_id, value: expression.id %>
-                  <%= hidden_input f, :for_group_id, value: group.id %>
+                <%= hidden_input f, :support, value: 1 %>
+                <%= hidden_input f, :expression_id, value: expression.id %>
+                <%= hidden_input f, :for_group_id, value: group.id %>
 
-                </.form>
+              </.form>
 
-                <.form
-                  let={f}
-                  for={:do_not_support_form}
-                  id={"do_not_support-form-#{expression.id}-#{group.id}"}
-                  phx-submit="my_support"
-                  class="columnn">
+              <.form
+                let={f}
+                for={:support_form}
+                id={"do_not_support-form-#{expression.id}-#{group.id}"}
+                phx-submit="my_support"
+                class="columnn">
 
-                  <%= textarea f, :note, rows: 6, placeholder: "Explanation for why I do not support (optional)"%>
-                  <%= submit "I do not support", phx_disable_with: "Saving...", class: "small" %>
+                <%= textarea f, :note, rows: 6, placeholder: "Explanation for why I ignore (optional)"%>
+                <%= submit "Ignore", phx_disable_with: "Saving...", class: "small" %>
 
-                  <%= hidden_input f, :support, value: 0 %>
-                  <%= hidden_input f, :expression_id, value: expression.id %>
-                  <%= hidden_input f, :for_group_id, value: group.id %>
+                <%= hidden_input f, :support, value: 0 %>
+                <%= hidden_input f, :expression_id, value: expression.id %>
+                <%= hidden_input f, :for_group_id, value: group.id %>
 
-                </.form>
+              </.form>
 
-                <.form
-                  let={f}
-                  for={:object_form}
-                  id={"object-form-#{expression.id}-#{group.id}"}
-                  phx-submit="my_support"
-                  class="columnn">
-
-                  <%= textarea f, :note, rows: 6, placeholder: "This is spam (for example)" %>
-                  <%= submit "I object", phx_disable_with: "Saving...", class: "small" %>
-                  <%= hidden_input f, :support, value: -1 %>
-                  <%= hidden_input f, :expression_id, value: expression.id %>
-                  <%= hidden_input f, :for_group_id, value: group.id %>
-                </.form>
-
-              </div>
+            </div>
           </div>
         <% end %>
       </div>

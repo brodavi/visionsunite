@@ -63,8 +63,10 @@ defmodule VisionsUnite.Expressions.Expression do
       |> Enum.map(fn group ->
         subscriber_count =
           ExpressionSubscriptions.count_expression_subscriptions_for_expression(group.link.id)
+        sortition_count =
+          SeekingSupports.calculate_sortition_size(subscriber_count)
         quorum_count =
-          Kernel.round(SeekingSupports.calculate_sortition_size(subscriber_count) * 0.51)
+          Kernel.round(sortition_count * 0.51)
         support_count =
           Supports.count_support_for_expression_for_group(expression, group.link.id)
 
@@ -72,6 +74,7 @@ defmodule VisionsUnite.Expressions.Expression do
           group,
           %{
             subscriber_count: subscriber_count,
+            sortition_count: sortition_count,
             quorum_count: quorum_count,
             support_count: support_count
           }

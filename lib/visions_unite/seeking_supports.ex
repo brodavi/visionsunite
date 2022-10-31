@@ -25,7 +25,7 @@ defmodule VisionsUnite.SeekingSupports do
   """
   def get_seeking_support_for_expression_and_user_for_group!(expression, user, for_group_id) do
     query =
-      if is_nil(for_group_id) do
+      if for_group_id == "" do
         from ss in SeekingSupport,
         where: ss.expression_id == ^expression.id and ss.user_id == ^user.id and is_nil(ss.for_group_id)
       else

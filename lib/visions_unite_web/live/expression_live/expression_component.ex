@@ -25,11 +25,14 @@ defmodule VisionsUniteWeb.ExpressionComponent do
           <summary>
             user feedback
           </summary>
-          <ul>
-            <%= for support <- @expression.supports do %>
-              <li><%= support.note %></li>
-            <% end %>
-          </ul>
+
+          <div>
+            <ul>
+              <%= for support <- @expression.supports do %>
+                <li><%= support.note %></li>
+              <% end %>
+            </ul>
+          </div>
         </details>
       </small>
     <% end %>
@@ -43,10 +46,10 @@ defmodule VisionsUniteWeb.ExpressionComponent do
         <div>
           <%= for group <- @expression.groups do %>
             <p>
-              This expression (<%= @expression.title %>) needs support from <%= group.quorum_count %> out of <%= group.subscriber_count %>
+              This expression (<%= @expression.title %>) needs support from <%= group.quorum_count %> out of <%= group.subscriber_count %> (sortition of <%= group.sortition_count%>)
 
               <%= if is_nil(group.link.id) do %>
-                of <b>all users</b> to be fully supported as a root expression.
+                of <b>all users</b> to be fully supported as a root expression. Currently <%= group.support_count %> supporting.
               <% else %>
               <code><%= group.link.title %></code> subscribers to be fully supported for the <%= group.link.title %> group. Currently <%= group.support_count %> supporting.
               <% end %>
