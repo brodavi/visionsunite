@@ -237,14 +237,6 @@ defmodule VisionsUnite.Expressions do
           })
         end)
 
-        # # Go ahead and subscribe to my own expression
-        # # TODO should I do this?
-        # ExpressionSubscriptions.create_expression_subscription(%{
-        #   expression_id: expression.id,
-        #   user_id: socket.assigns.current_user_id,
-        #   subscribe: true
-        # })
-
         # Let's now seek supporters for this expression
         seeking_supports =
           SeekingSupports.seek_supporters(expression)

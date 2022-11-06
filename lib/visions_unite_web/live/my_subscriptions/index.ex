@@ -37,6 +37,18 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
+  defp apply_action(socket, :index, _params) do
+    socket
+    |> assign(:page_title, "My Subscriptions")
+    |> assign(:version, "v2")
+  end
+
+  defp apply_action(socket, :index_v3, _params) do
+    socket
+    |> assign(:page_title, "My Subscriptions")
+    |> assign(:version, "v3")
+  end
+
   @impl true
   def handle_event("unsubscribe", %{"expression_id" => expression_id}, socket) do
     user_id = socket.assigns.current_user_id
@@ -59,11 +71,6 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
       |> assign(:my_subscriptions, my_subscriptions)
 
     {:noreply, socket}
-  end
-
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "My Subscriptions")
   end
 
   defp list_my_subscriptions(user_id) do

@@ -93,6 +93,14 @@ defmodule VisionsUniteWeb.Router do
     live "/v2/ignored_expressions", IgnoredExpressionsLive.Index, :index
     live "/v2/my_subscriptions", MySubscriptionsLive.Index, :index
     live "/v2/my_expressions", MyExpressionsLive.Index, :index
+
+    live "/v3/expressions", ExpressionsSeekingMySupportLive.Index, :index_v3
+    live "/v3/expression/:id", ExpressionShowLive.Show, :show
+    live "/v3/expressions_seeking_my_support", ExpressionsSeekingMySupportLive.Index, :index_v3
+    live "/v3/fully_supported_expressions", FullySupportedExpressionsLive.Index, :index_v3
+    live "/v3/ignored_expressions", IgnoredExpressionsLive.Index, :index_v3
+    live "/v3/my_subscriptions", MySubscriptionsLive.Index, :index_v3
+    live "/v3/my_expressions", MyExpressionsLive.Index, :index_v3
   end
 
   scope "/", VisionsUniteWeb do

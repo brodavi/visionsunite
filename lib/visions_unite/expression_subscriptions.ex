@@ -114,7 +114,8 @@ defmodule VisionsUnite.ExpressionSubscriptions do
   def list_expression_subscriptions_for_user(user_id) do
     query =
       from es in ExpressionSubscription,
-      where: es.user_id == ^user_id
+      where: es.user_id == ^user_id and
+             es.subscribe != false
     Repo.all(query)
   end
 
@@ -146,7 +147,9 @@ defmodule VisionsUnite.ExpressionSubscriptions do
   def get_expression_subscription_for_expression_and_user(expression_id, user_id) do
     query =
       from es in ExpressionSubscription,
-      where: es.expression_id == ^expression_id and es.user_id == ^user_id
+      where: es.expression_id == ^expression_id and
+             es.user_id == ^user_id and
+             es.subscribe == true
 
     Repo.one(query)
   end

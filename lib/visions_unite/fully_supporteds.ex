@@ -26,28 +26,6 @@ defmodule VisionsUnite.FullySupporteds do
   end
 
   @doc """
-  Returns the list of fully_supporteds for a particular expression and user.
-
-  ## Examples
-
-      iex> list_fully_supporteds_for_expression_and_user(expression_id, user_id)
-      [%FullySupported{}, ...]
-
-  """
-  def list_fully_supporteds_for_expression_and_user(expression_id, user_id) do
-    group_ids =
-      ExpressionSubscriptions.list_expression_subscriptions_for_user(user_id)
-      |> Enum.map(& &1.expression_id)
-
-    query =
-      from fs in FullySupported,
-      where: fs.expression_id == ^expression_id and
-             fs.group_id in ^group_ids
-
-    Repo.all(query)
-  end
-
-  @doc """
   Returns the list of fully_supporteds for a particular group.
 
   ## Examples

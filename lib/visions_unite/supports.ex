@@ -36,8 +36,9 @@ defmodule VisionsUnite.Supports do
 
   """
   def list_supports_for_expression(expression) do
-    query = from e in Support,
-      where: e.expression_id == ^expression.id
+    query = from s in Support,
+      where: s.expression_id == ^expression.id and
+             s.support > 0.0
 
     Repo.all(query)
   end
@@ -52,8 +53,9 @@ defmodule VisionsUnite.Supports do
 
   """
   def count_support_for_expression(expression) do
-    query = from e in Support,
-      where: e.expression_id == ^expression.id and e.support > 0.0
+    query = from s in Support,
+      where: s.expression_id == ^expression.id and
+             s.support > 0.0
 
     Repo.aggregate(query, :count)
   end
@@ -70,7 +72,9 @@ defmodule VisionsUnite.Supports do
   def count_support_for_expression_for_group(expression, nil), do: count_support_for_expression(expression)
   def count_support_for_expression_for_group(expression, group_id) do
     query = from s in Support,
-      where: s.expression_id == ^expression.id and s.support > 0.0 and s.for_group_id == ^group_id
+      where: s.expression_id == ^expression.id and
+             s.support > 0.0 and
+             s.for_group_id == ^group_id
 
     Repo.aggregate(query, :count)
   end

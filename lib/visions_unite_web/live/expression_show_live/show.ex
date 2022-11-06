@@ -1,4 +1,4 @@
-defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
+defmodule VisionsUniteWeb.ExpressionShowLive.Show do
   use VisionsUniteWeb, :live_view
 
   alias VisionsUnite.Supports
@@ -9,26 +9,24 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
   alias VisionsUniteWeb.NavComponent
 
   @impl true
-  def mount(_params, session, socket) do
-    if connected?(socket) do
-      VisionsUniteWeb.SharedPubSub.subscribe("sortitions")
-      VisionsUniteWeb.SharedPubSub.subscribe("support")
-      VisionsUniteWeb.SharedPubSub.subscribe("supported_expressions")
-    end
+  def mount(params, session, socket) do
+    IO.puts "got params: #{inspect params}"
 
     user_id = session["current_user_id"]
 
-    my_seeking_supports =
-      list_my_seeking_supports(user_id)
-
-    fully_supported_groupings =
-      list_fully_supported_groupings(user_id)
+    expression =
+      Expressions.get_expression!(params["id"])
+      |> Expression.annotate_with_supports()
+      |> Expression.annotate_with_group_data()
+      |> Expression.annotate_with_linked_expressions()
+      |> Expression.annotate_with_fully_supporteds(user_id)
+      |> Expression.annotate_with_seeking_support(user_id)
+      |> Expression.annotate_subscribed(user_id)
 
     socket =
       socket
       |> assign(:current_user_id, user_id)
-      |> assign(:my_seeking_supports, my_seeking_supports)
-      |> assign(:fully_supported_groupings, fully_supported_groupings)
+      |> assign(:expression, expression)
     {:ok, socket}
   end
 
@@ -37,16 +35,9 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :index, _params) do
+  defp apply_action(socket, :show, params) do
     socket
-    |> assign(:page_title, "Listing Expressions Seeking My Support")
-    |> assign(:version, "v2")
-  end
-
-  defp apply_action(socket, :index_v3, _params) do
-    socket
-    |> assign(:page_title, "Listing Expressions Seeking My Support")
-    |> assign(:version, "v3")
+    |> assign(:page_title, "Showing Expression")
   end
 
   @impl true
@@ -79,14 +70,10 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
     my_seeking_supports =
       list_my_seeking_supports(user_id)
 
-    fully_supported_groupings =
-      list_fully_supported_groupings(user_id)
-
     socket =
       socket
       |> put_flash(:info, "Successfully #{actioned} expression. Thank you!")
       |> assign(:my_seeking_supports, my_seeking_supports)
-      |> assign(:fully_supported_groupings, fully_supported_groupings)
     {:noreply, socket}
   end
 
@@ -111,15 +98,6 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
         group: group
       }
     end)
-  end
-
-  defp list_fully_supported_groupings(user_id) do
-    seeking_supports =
-      list_my_seeking_supports(user_id)
-
-    groupings =
-      seeking_supports
-      |> Enum.group_by(& &1.group)
   end
 end
 

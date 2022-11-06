@@ -1,4 +1,4 @@
-<NavComponent.nav active={"my_subscriptions"} />
+<NavComponent.nav active={"my_subscriptions"} version={@version} />
 
 <br>
 
@@ -6,15 +6,25 @@
   <section>
     <h3>My Subscriptions</h3>
     <div id="my-subscriptions">
-      <%= for expression <- @my_subscriptions do %>
-        <div id={"my-subscription-#{expression.id}"} class="roww">
-          <div>
-            <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
+      <%= if @version == "v3" do %>
+        <%= for expression <- @my_subscriptions do %>
+          <div id={"my-subscription-#{expression.id}"} class="roww">
+            <div>
+              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} v3={true} />
+            </div>
           </div>
-          <div>
-            <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Leave Conversation</button>
+        <% end %>
+      <% else %>
+        <%= for expression <- @my_subscriptions do %>
+          <div id={"my-subscription-#{expression.id}"} class="roww">
+            <div>
+              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
+            </div>
+            <div>
+              <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Leave Conversation</button>
+            </div>
           </div>
-        </div>
+        <% end %>
       <% end %>
     </div>
   </section>

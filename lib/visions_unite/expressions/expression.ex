@@ -2,6 +2,7 @@ defmodule VisionsUnite.Expressions.Expression do
   use Ecto.Schema
   import Ecto.Changeset
   alias VisionsUnite.Accounts.User
+  alias VisionsUnite.ExpressionLinkages
   alias VisionsUnite.ExpressionLinkages.ExpressionLinkage
   alias VisionsUnite.Expressions
   alias VisionsUnite.ExpressionSubscriptions
@@ -151,13 +152,47 @@ defmodule VisionsUnite.Expressions.Expression do
 
   def annotate_with_fully_supporteds(expression, user_id) when is_map(expression) do
     fully_supporteds =
-      FullySupporteds.list_fully_supporteds_for_expression_and_user(expression.id, user_id)
+      ExpressionLinkages.list_parents_for_expression_and_user(expression.id, user_id)
       |> Enum.map(fn fs ->
-        Expressions.get_expression_title(fs.group_id)
+        Expressions.get_expression_title(fs.link_id)
       end)
 
     Map.merge(expression, %{
       fully_supporteds: fully_supporteds
+    })
+  end
+
+  def annotate_with_seeking_support(expression, user_id) when is_map(expression) do
+    seeking_support_from =
+      SeekingSupports.list_support_sought_for_user(user_id)
+      |> Enum.filter(fn ss ->
+        ss.expression_id == expression.id
+      end)
+
+    seeking_support_from =
+      if is_nil(List.first(seeking_support_from)) or List.first(seeking_support_from).for_group_id == nil do
+        seeking_support_from
+        |> Enum.map(fn ss ->
+          %{id: nil, title: "everyone"}
+        end)
+      else
+        seeking_support_from
+        |> Enum.map(fn ss ->
+          Expressions.get_expression!(ss.for_group_id)
+        end)
+      end
+
+    Map.merge(expression, %{
+      seeking_support_from: List.first(seeking_support_from)
+    })
+  end
+
+  def annotate_subscribed(expression, user_id) when is_map(expression) do
+    subscribed =
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression.id, user_id)
+
+    Map.merge(expression, %{
+      subscribed: subscribed
     })
   end
 end

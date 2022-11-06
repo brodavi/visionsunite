@@ -1,0 +1,119 @@
+<%= if is_list(@expression.fully_supporteds) and Enum.count(@expression.fully_supporteds) !== 0 do %>
+  <h1>
+    / <%= List.first(@expression.fully_supporteds, ", ") %> / <%= @expression.title %>
+  </h1>
+<% else %>
+  <% # Else, this expression is seeking support, and could have multiple groups %>
+  <%= if Map.has_key?(assigns, :group) do %>
+    <h1>
+      / <%= @group %> / <%= @expression.title %>
+    </h1>
+  <% else %>
+    <h1>
+      / <%= @expression.title %>
+    </h1>
+  <% end %>
+<% end %>
+
+<p>
+  <%= @expression.body %>
+</p>
+
+<%= if !@expression.seeking_support_from do %>
+  <div class="roww">
+    <%= if @expression.subscribed do %>
+      <button class="small" disabled>Join Conversation</button>
+    <% else %>
+      <button class="small" phx-click="subscribe" phx-value-expression_id={@expression.id}>Join Conversation</button>
+    <% end %>
+
+    <%= if @expression.subscribed do %>
+      <button class="small" phx-click="unsubscribe" phx-value-expression_id={@expression.id}>Leave Conversation</button>
+    <% else %>
+      <button class="small" disabled>Leave Conversation</button>
+    <% end %>
+
+    <%= if @expression.subscribed do %>
+      <button class="small" phx-click="ignore" phx-value-expression_id={@expression.id}>Ignore</button>
+    <% else %>
+      <button class="small" disabled>Ignore</button>
+    <% end %>
+
+    <button class="small" phx-click="create_linked_expression" phx-value-expression_id={@expression.id}>Created a Linked Expression</button>
+  </div>
+<% end %>
+
+<%= if @expression.seeking_support_from do %>
+  <hr>
+
+  <p>
+    You are representing the group: <b><%= @expression.seeking_support_from.title %></b>. Do you support this expression for this group?
+  </p>
+
+  <div class="roww">
+
+    <.form
+      let={f}
+      for={:support_form}
+      id={"support-form-#{@expression.id}"}
+      phx-submit="my_support"
+      class="columnn">
+
+      <%= textarea f, :note, rows: 6, placeholder: "Reasons for why you support (optional)" %>
+      <%= submit "I support", phx_disable_with: "Saving...", class: "small" %>
+
+      <%= hidden_input f, :support, value: 1 %>
+      <%= hidden_input f, :expression_id, value: @expression.id %>
+      <%= hidden_input f, :for_group_id, value: @expression.seeking_support_from.id %>
+
+    </.form>
+
+    <.form
+      let={f}
+      for={:support_form}
+      id={"do_not_support-form-#{@expression.id}"}
+      phx-submit="my_support"
+      class="columnn">
+
+      <%= textarea f, :note, rows: 6, placeholder: "Explanation for why I ignore (optional)"%>
+      <%= submit "Ignore", phx_disable_with: "Saving...", class: "small" %>
+
+      <%= hidden_input f, :support, value: 0 %>
+      <%= hidden_input f, :expression_id, value: @expression.id %>
+      <%= hidden_input f, :for_group_id, value: @expression.seeking_support_from.id %>
+
+    </.form>
+
+  </div>
+
+<% end %>
+
+<hr>
+
+<h4>more information</h4>
+
+<div>
+  <p>
+    This expression (<%= @expression.title %>) needs support from <%= List.first(@expression.groups).quorum_count %> out of <%= List.first(@expression.groups).subscriber_count %> (sortition of <%= List.first(@expression.groups).sortition_count %>)
+
+    <%= if is_nil(List.first(@expression.groups).link.id) do %>
+      of <b>all users</b> to be fully supported as a root expression. Currently <%= List.first(@expression.groups).support_count %> supporting.
+    <% else %>
+    <code><%= List.first(@expression.groups).link.title %></code> subscribers to be fully supported for the <%= List.first(@expression.groups).link.title %> group. Currently <%= List.first(@expression.groups).support_count %> supporting.
+    <% end %>
+  </p>
+</div>
+
+<%= if @expression.author_id == @current_user_id and Map.has_key?(@expression, :supports) and Enum.count(@expression.supports) != 0 do %>
+  <h4>user feedback</h4>
+  <div>
+    <ul>
+      <%= for support <- @expression.supports do %>
+        <li><%= support.note %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<NavComponent.nav active={nil} version={"v3"} />
+

@@ -1,4 +1,4 @@
-<NavComponent.nav active={"fully_supported"} />
+<NavComponent.nav active={"fully_supported"} version={@version} />
 
 <br>
 
@@ -6,18 +6,30 @@
   <section>
     <h3>Fully Supported Expressions</h3>
     <div id="fully-supported-expressions">
-      <%= for expression <- @fully_supported_expressions do %>
-        <div id={"supported-expression-#{expression.id}"} class="roww">
-          <div>
-            <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
+      <%= if @version == "v3" do %>
+
+        <%= for expression <- @fully_supported_expressions do %>
+          <div id={"supported-expression-#{expression.id}"} class="roww">
+            <div>
+              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} v3={true} />
+            </div>
           </div>
-          <div>
-            <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Join Conversation</button>
+        <% end %>
+
+      <% else %>
+        <%= for expression <- @fully_supported_expressions do %>
+          <div id={"supported-expression-#{expression.id}"} class="roww">
+            <div>
+              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
+            </div>
+            <div>
+              <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Join Conversation</button>
+            </div>
+            <div>
+              <button class="small" phx-click="ignore" phx-value-expression_id={expression.id}>Ignore</button>
+            </div>
           </div>
-          <div>
-            <button class="small" phx-click="ignore" phx-value-expression_id={expression.id}>Ignore</button>
-          </div>
-        </div>
+        <% end %>
       <% end %>
     </div>
   </section>

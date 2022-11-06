@@ -36,6 +36,13 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Ignored Expressions")
+    |> assign(:version, "v2")
+  end
+
+  defp apply_action(socket, :index_v3, _params) do
+    socket
+    |> assign(:page_title, "Listing Ignored Expressions")
+    |> assign(:version, "v3")
   end
 
   @impl true
