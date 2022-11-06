@@ -104,7 +104,7 @@
             <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
           </div>
           <div>
-            <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Unsubscribe</button>
+            <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Leave Conversation</button>
           </div>
         </div>
       <% end %>
@@ -122,7 +122,7 @@
             <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
           </div>
           <div>
-            <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Subscribe</button>
+            <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Join Conversation</button>
           </div>
           <div>
             <button class="small" phx-click="ignore" phx-value-expression_id={expression.id}>Ignore</button>
@@ -147,7 +147,7 @@
               <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
             </div>
             <div>
-              <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Subscribe</button>
+              <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Join Conversation</button>
             </div>
           </div>
         <% end %>

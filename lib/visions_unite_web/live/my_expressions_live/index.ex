@@ -103,9 +103,6 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
 
   defp list_my_subscriptions(user_id) do
     Expressions.list_subscribed_expressions_for_user(user_id)
-    |> Expression.annotate_with_supports()
-    |> Expression.annotate_with_group_data()
-    |> Expression.annotate_with_linked_expressions()
   end
 
   defp list_my_expressions(user_id) do
@@ -113,6 +110,7 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
     |> Expression.annotate_with_supports()
     |> Expression.annotate_with_group_data()
     |> Expression.annotate_with_linked_expressions()
+    |> Expression.annotate_with_fully_supporteds(user_id)
   end
 
   defp filter_members_of(expressions, reject_expressions) do

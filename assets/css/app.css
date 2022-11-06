@@ -12,10 +12,6 @@ body {
 div {
   margin: 0.5rem;
   padding: 0.5rem;
-  /*
-  border: 2px solid #eeeeee;
-  border-radius: 5px;
-  */
 }
 
 details > div {
@@ -24,6 +20,25 @@ details > div {
   background: #444444;
   border: 2px solid #222222;
   border-radius: 5px;
+}
+
+details > div.revealed {
+  margin: 0.5rem;
+  padding: 0.5rem;
+  position: unset;
+  background: unset;
+  border: unset;
+  border-radius: unset;
+}
+
+summary > span {
+  padding: 0.5rem;
+  background: #ee2222;
+  border-radius: 5px;
+}
+
+#expressions-seeking-support > details {
+  margin-bottom: 0.75rem;
 }
 
 .roww {

@@ -73,6 +73,7 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
     Expressions.list_ignored_expressions(user_id)
     |> Expression.annotate_with_group_data()
     |> Expression.annotate_with_linked_expressions()
+    |> Expression.annotate_with_fully_supporteds(user_id)
   end
 end
 

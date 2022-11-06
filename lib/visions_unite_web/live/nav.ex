@@ -18,9 +18,9 @@ defmodule VisionsUniteWeb.NavComponent do
       <% end %>
 
       <%= if @active == "my_subscriptions" do %>
-        <a href="#" class="active">My Subscriptions</a>
+        <a href="#" class="active">Expressions I have Joined</a>
       <% else %>
-        <%= link "My Subscriptions", to: "/v2/my_subscriptions" %>
+        <%= link "Expressions I have Joined", to: "/v2/my_subscriptions" %>
       <% end %>
 
       <%= if @active == "my_expressions" do %>

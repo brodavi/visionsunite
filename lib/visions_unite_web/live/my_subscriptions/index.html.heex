@@ -12,13 +12,13 @@
             <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
           </div>
           <div>
-            <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Unsubscribe</button>
+            <button class="small" phx-click="unsubscribe" phx-value-expression_id={expression.id}>Leave Conversation</button>
           </div>
         </div>
       <% end %>
     </div>
   </section>
 <% else %>
-  <h3>You have not subscribed to any expressions.</h3>
+  <h3>You have not joined any conversations.</h3>
 <% end %>
 

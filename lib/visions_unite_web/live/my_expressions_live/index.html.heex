@@ -11,9 +11,15 @@
       my_subscriptions={@my_subscriptions}
       my_expressions={@my_expressions}
       current_user_id={@current_user_id}
-      return_to={Routes.expression_index_path(@socket, :index)}
+      return_to={Routes.my_expressions_index_path(@socket, :index)}
     />
   </.modal>
+<% end %>
+
+<br>
+
+<%= live_patch to: Routes.my_expressions_index_path(@socket, :new) do %>
+  <button>Create New Expression</button>
 <% end %>
 
 <br>
@@ -37,9 +43,5 @@
   <br>
 <% else %>
   <h3>You have created no expressions (yet!).</h3>
-<% end %>
-
-<%= live_patch to: Routes.expression_index_path(@socket, :new) do %>
-  <button>Create New Expression</button>
 <% end %>
 
