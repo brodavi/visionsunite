@@ -1,0 +1,12 @@
+# Visions Unite
+
+## Everybody's Voices, Nobody's Noise
+
+VisionsUnite is an attempt to answer the question: "when we build tools to help people come together to achieve a goal, whether in a cooperative or a campaign or a movement organization, how do we unleash the full potential of each person who gets involved, what is the approach to ensure that as a movement builds power to achieve its demands the power within the movement is shared equally?"
+
+The purpose of the software is giving people in large, growing, dynamic groups the ability to each have equal say in the direction and decisions of such groups. Say 20,000 people pool their money to crowdfund an online newspaper, their ability to collectively oversee it as publishers is dependent on each person having an equal chance at presenting a policy to the other 19,999— but all 20,000 cannot talk at once, so messages are filtered through random samples of ~150 people determining if the message should go to everyone else. Same for a half million people in an environmental organization, the fact that everyone has equal chance to get their report or idea in front of the entire group means that group knowledge and experience grows and tactics can evolve alongside that, moreso than if decision-making (including, crucially, about what gets discussed and so what can get decided) is limited to a board of directors and/or a central staff.
+
+```elixir
+# Get all users inthe system
+VisionsUnite.Accounts.list_users()
+```

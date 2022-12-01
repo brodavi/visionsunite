@@ -1,3 +1,4 @@
+
 <%= if is_list(@expression.fully_supporteds) and Enum.count(@expression.fully_supporteds) !== 0 do %>
   <h1>
     / <%= List.first(@expression.fully_supporteds, ", ") %> / <%= @expression.title %>
@@ -21,7 +22,7 @@
 
 <%= if !@expression.seeking_support_from do %>
   <div class="roww">
-    <%= if @expression.subscribed do %>
+    <%= if !is_nil(@expression.subscribed) and @expression.subscribed.subscribe do %>
       <button class="small" disabled>Join Conversation</button>
     <% else %>
       <button class="small" phx-click="subscribe" phx-value-expression_id={@expression.id}>Join Conversation</button>
@@ -92,17 +93,22 @@
 
 <h4>more information</h4>
 
-<div>
-  <p>
-    This expression (<%= @expression.title %>) needs support from <%= List.first(@expression.groups).quorum_count %> out of <%= List.first(@expression.groups).subscriber_count %> (sortition of <%= List.first(@expression.groups).sortition_count %>)
-
-    <%= if is_nil(List.first(@expression.groups).link.id) do %>
-      of <b>all users</b> to be fully supported as a root expression. Currently <%= List.first(@expression.groups).support_count %> supporting.
-    <% else %>
-    <code><%= List.first(@expression.groups).link.title %></code> subscribers to be fully supported for the <%= List.first(@expression.groups).link.title %> group. Currently <%= List.first(@expression.groups).support_count %> supporting.
-    <% end %>
-  </p>
-</div>
+<%= if is_nil(List.first(@expression.groups).link.id) do %>
+  <div>
+    <p>
+      This expression (<%= @expression.title %>) needs support from <%= List.first(@expression.groups).quorum_count %> out of <%= List.first(@expression.groups).subscriber_count %> (sortition of <%= List.first(@expression.groups).sortition_count %>) of <b>all users</b> to be fully supported as a root expression. Currently <%= List.first(@expression.groups).support_count %> supporting.
+    </p>
+  </div>
+<% else %>
+  <%= for group <- @expression.groups do %>
+    <div>
+      <p>
+        This expression (<%= @expression.title %>) needs support from <%= group.quorum_count %> out of <%= group.subscriber_count %> (sortition of <%= group.sortition_count %>)
+        <code><%= group.link.title %></code> subscribers to be fully supported for the <%= group.link.title %> group. Currently <%= group.support_count %> supporting.
+      </p>
+    </div>
+  <% end %>
+<% end %>
 
 <%= if @expression.author_id == @current_user_id and Map.has_key?(@expression, :supports) and Enum.count(@expression.supports) != 0 do %>
   <h4>user feedback</h4>
@@ -110,6 +116,50 @@
     <ul>
       <%= for support <- @expression.supports do %>
         <li><%= support.note %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<%= if true or @current_user.super_admin do %>
+  <h2>___---=== DEBUG INFO ===---___</h2>
+  <h4>supports</h4>
+  <div>
+    <ul>
+      <%= for support <- @supports do %>
+        <li><%= "#{VisionsUnite.Accounts.get_user!(support.user_id).email}, #{support.support}, \"#{support.note}\"" %></li>
+      <% end %>
+    </ul>
+  </div>
+  <h4>sortition</h4>
+  <div>
+    <ul>
+      <%= for seeking_support <- @seeking_supports do %>
+        <li><%= "Seeking support from: #{VisionsUnite.Accounts.get_user!(seeking_support.user_id).email} for group: #{if !is_nil(seeking_support.for_group_id) do VisionsUnite.Expressions.get_expression_title(seeking_support.for_group_id) else "all" end}" %></li>
+      <% end %>
+    </ul>
+  </div>
+  <h4>linkages</h4>
+  <div>
+    <ul>
+      <%= for link <- @linkages do %>
+        <li><%= "#{VisionsUnite.Expressions.get_expression_title(link.link_id)}" %></li>
+      <% end %>
+    </ul>
+  </div>
+  <h4>subscriptions</h4>
+  <div>
+    <ul>
+      <%= for subscription <- @subscriptions do %>
+        <li><%= "#{VisionsUnite.Accounts.get_user!(subscription.user_id).email} is subscribed?: #{subscription.subscribe}" %></li>
+      <% end %>
+    </ul>
+  </div>
+  <h4>fully supporteds</h4>
+  <div>
+    <ul>
+      <%= for fully_supported <- @fully_supporteds do %>
+        <li><%= "Fully supported for the group: #{if !is_nil(fully_supported.group_id) do VisionsUnite.Expressions.get_expression_title(fully_supported.group_id) else "all" end}" %></li>
       <% end %>
     </ul>
   </div>

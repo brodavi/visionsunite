@@ -26,6 +26,20 @@ defmodule VisionsUnite.FullySupporteds do
   end
 
   @doc """
+  Returns the list of fully_supporteds for a particular expression.
+
+  ## Examples
+
+      iex> list_fully_supporteds_for_expression(expression_id)
+      [%FullySupported{}, ...]
+
+  """
+  def list_fully_supporteds_for_expression(expression_id) do
+    query = from ep in FullySupported, where: ep.expression_id == ^expression_id
+    Repo.all(query)
+  end
+
+  @doc """
   Returns the list of fully_supporteds for a particular group.
 
   ## Examples

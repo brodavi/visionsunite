@@ -27,18 +27,34 @@ defmodule VisionsUnite.Supports do
   end
 
   @doc """
-  This function returns the list of supports for a given expression.
+  This function returns the list of supports > 0 for a given expression.
 
   ## Examples
 
       iex> list_supports_for_expression(expression)
-      83
+      [%Support{} ...]
 
   """
   def list_supports_for_expression(expression) do
     query = from s in Support,
       where: s.expression_id == ^expression.id and
              s.support > 0.0
+
+    Repo.all(query)
+  end
+
+  @doc """
+  This function returns the list of all supports (even < 0) for a given expression.
+
+  ## Examples
+
+      iex> list_all_supports_for_expression(expression)
+      [%Support{} ...]
+
+  """
+  def list_all_supports_for_expression(expression) do
+    query = from s in Support,
+      where: s.expression_id == ^expression.id
 
     Repo.all(query)
   end

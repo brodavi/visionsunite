@@ -1,4 +1,4 @@
-<NavComponent.nav active={"my_expressions"} version={@version} />
+<NavComponent.nav active={@live_action} version={@version} />
 
 <%= if @live_action in [:new, :edit] do %>
   <.modal return_to={Routes.expression_index_path(@socket, :index)}>

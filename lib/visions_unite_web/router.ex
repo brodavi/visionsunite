@@ -101,6 +101,7 @@ defmodule VisionsUniteWeb.Router do
     live "/v3/ignored_expressions", IgnoredExpressionsLive.Index, :index_v3
     live "/v3/my_subscriptions", MySubscriptionsLive.Index, :index_v3
     live "/v3/my_expressions", MyExpressionsLive.Index, :index_v3
+    live "/v3/all_expressions", AllExpressionsLive.Index, :index_v3
   end
 
   scope "/", VisionsUniteWeb do
