@@ -48,7 +48,7 @@
   <hr>
 
   <p>
-    You are representing the group: <b><%= @expression.seeking_support_from.title %></b>. Do you support this expression for this group?
+    You are one of <%= List.first(@expression.groups).sortition_count %> people to decide if this message should go to all <%= List.first(@expression.groups).subscriber_count %> people in group: <b><%= List.first(@expression.groups).link.title %></b>. <br> Do you support this expression for this group?
   </p>
 
   <div class="roww">
