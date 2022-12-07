@@ -18,17 +18,16 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
 
     user_id = session["current_user_id"]
 
-    my_seeking_supports =
-      list_my_seeking_supports(user_id)
+    my_seeking_supports = list_my_seeking_supports(user_id)
 
-    fully_supported_groupings =
-      list_fully_supported_groupings(user_id)
+    fully_supported_groupings = list_fully_supported_groupings(user_id)
 
     socket =
       socket
       |> assign(:current_user_id, user_id)
       |> assign(:my_seeking_supports, my_seeking_supports)
       |> assign(:fully_supported_groupings, fully_supported_groupings)
+
     {:ok, socket}
   end
 
@@ -50,12 +49,18 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
   end
 
   @impl true
-  def handle_event("my_support", %{"support_form" => %{
-    "expression_id" => expression_id,
-    "support" => support,
-    "note" => note,
-    "for_group_id" => for_group_id
-  }}, socket) do
+  def handle_event(
+        "my_support",
+        %{
+          "support_form" => %{
+            "expression_id" => expression_id,
+            "support" => support,
+            "note" => note,
+            "for_group_id" => for_group_id
+          }
+        },
+        socket
+      ) do
     user_id = socket.assigns.current_user_id
 
     Supports.create_support(%{
@@ -70,30 +75,30 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
       case support do
         "-1" ->
           "objected to"
+
         "0" ->
           "ignored"
+
         "1" ->
           "supported"
       end
 
-    my_seeking_supports =
-      list_my_seeking_supports(user_id)
+    my_seeking_supports = list_my_seeking_supports(user_id)
 
-    fully_supported_groupings =
-      list_fully_supported_groupings(user_id)
+    fully_supported_groupings = list_fully_supported_groupings(user_id)
 
     socket =
       socket
       |> put_flash(:info, "Successfully #{actioned} expression. Thank you!")
       |> assign(:my_seeking_supports, my_seeking_supports)
       |> assign(:fully_supported_groupings, fully_supported_groupings)
+
     {:noreply, socket}
   end
 
   defp list_my_seeking_supports(user_id) do
     SeekingSupports.list_support_sought_for_user(user_id)
     |> Enum.map(fn ss ->
-
       expression =
         Expressions.get_expression!(ss.expression_id)
         |> Expression.annotate_with_group_data()
@@ -114,12 +119,9 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
   end
 
   defp list_fully_supported_groupings(user_id) do
-    seeking_supports =
-      list_my_seeking_supports(user_id)
+    seeking_supports = list_my_seeking_supports(user_id)
 
-    groupings =
-      seeking_supports
-      |> Enum.group_by(& &1.group)
+    seeking_supports
+    |> Enum.group_by(& &1.group)
   end
 end
-

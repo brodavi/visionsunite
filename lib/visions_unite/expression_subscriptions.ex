@@ -44,16 +44,18 @@ defmodule VisionsUnite.ExpressionSubscriptions do
   def count_expression_subscriptions_for_expression(expression) when is_map(expression) do
     query =
       from es in ExpressionSubscription,
-      where: es.expression_id == ^expression.id
+        where: es.expression_id == ^expression.id
 
     Repo.aggregate(query, :count)
   end
 
-  def count_expression_subscriptions_for_expression(expression_id) when is_number(expression_id) do
-    query = from es in ExpressionSubscription,
-      join: e in Expression,
-      on: e.id == es.expression_id,
-      where: e.id == ^expression_id
+  def count_expression_subscriptions_for_expression(expression_id)
+      when is_number(expression_id) do
+    query =
+      from es in ExpressionSubscription,
+        join: e in Expression,
+        on: e.id == es.expression_id,
+        where: e.id == ^expression_id
 
     Repo.aggregate(query, :count)
   end
@@ -70,16 +72,19 @@ defmodule VisionsUnite.ExpressionSubscriptions do
       [%ExpressionSubscription{}, ...]
   """
   def list_expression_subscriptions_for_expression(expression_id) when is_number(expression_id) do
-    query = from es in ExpressionSubscription,
-      where: es.expression_id == ^expression_id
+    query =
+      from es in ExpressionSubscription,
+        where: es.expression_id == ^expression_id
 
     Repo.all(query)
   end
 
   def list_expression_subscriptions_for_expression(expression) when is_map(expression) do
-    query = from es in ExpressionSubscription,
-      where: es.expression_id == ^expression.id and
-             es.subscribe == true
+    query =
+      from es in ExpressionSubscription,
+        where:
+          es.expression_id == ^expression.id and
+            es.subscribe == true
 
     Repo.all(query)
   end
@@ -94,10 +99,11 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   """
   def count_expression_subscriptions_for_expression_by_name(expression_title) do
-    query = from es in ExpressionSubscription,
-      join: e in Expression,
-      on: e.id == es.expression_id,
-      where: e.title == ^expression_title
+    query =
+      from es in ExpressionSubscription,
+        join: e in Expression,
+        on: e.id == es.expression_id,
+        where: e.title == ^expression_title
 
     Repo.aggregate(query, :count)
   end
@@ -114,8 +120,10 @@ defmodule VisionsUnite.ExpressionSubscriptions do
   def list_expression_subscriptions_for_user(user_id) do
     query =
       from es in ExpressionSubscription,
-      where: es.user_id == ^user_id and
-             es.subscribe != false
+        where:
+          es.user_id == ^user_id and
+            es.subscribe != false
+
     Repo.all(query)
   end
 
@@ -147,9 +155,10 @@ defmodule VisionsUnite.ExpressionSubscriptions do
   def get_expression_subscription_for_expression_and_user(expression_id, user_id) do
     query =
       from es in ExpressionSubscription,
-      where: es.expression_id == ^expression_id and
-             es.user_id == ^user_id and
-             es.subscribe == true
+        where:
+          es.expression_id == ^expression_id and
+            es.user_id == ^user_id and
+            es.subscribe == true
 
     Repo.one(query)
   end
@@ -215,7 +224,10 @@ defmodule VisionsUnite.ExpressionSubscriptions do
       %Ecto.Changeset{data: %ExpressionSubscription{}}
 
   """
-  def change_expression_subscription(%ExpressionSubscription{} = expression_subscription, attrs \\ %{}) do
+  def change_expression_subscription(
+        %ExpressionSubscription{} = expression_subscription,
+        attrs \\ %{}
+      ) do
     ExpressionSubscription.changeset(expression_subscription, attrs)
   end
 
@@ -239,18 +251,20 @@ defmodule VisionsUnite.ExpressionSubscriptions do
       ExpressionLinkages.list_expression_linkages_for_expression(expression.id)
 
     if Enum.count(expression_linkages) == 0 do
-      [%{nil => nil}] # note the sortition is pulled in SeekingSupports
+      # note the sortition is pulled in SeekingSupports
+      [%{nil => nil}]
     else
       subscribers_lists =
         expression_linkages
         |> Enum.map(fn expression_linkage ->
           list_expression_subscriptions_for_expression(expression_linkage.link_id)
-          |> Enum.filter(& &1.user_id != expression.author_id)
+          |> Enum.filter(&(&1.user_id != expression.author_id))
         end)
 
       if Enum.count(Enum.at(subscribers_lists, 0)) == 0 do
         # Subscribers list is STILL 0 (there are linked expressions, but still nobody is subscribed)
-        [%{nil => nil}] # note the sortition is pulled in SeekingSupports
+        # note the sortition is pulled in SeekingSupports
+        [%{nil => nil}]
       else
         subscribers_lists
         |> Enum.map(fn subscriber_list ->
@@ -278,8 +292,8 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
     if Enum.count(expression_linkages) == 0 do
       # No linked expressions... "subscribers" is everyone
-      users_count =
-        Accounts.count_users() -1 # Minus one to account for author
+      # Minus one to account for author
+      users_count = Accounts.count_users() - 1
 
       [%{nil => users_count}]
     else
@@ -291,4 +305,3 @@ defmodule VisionsUnite.ExpressionSubscriptions do
     end
   end
 end
-

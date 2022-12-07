@@ -22,11 +22,16 @@ defmodule VisionsUnite.Repo.Migrations.CreateSupports do
     create index(:supports, [:user_id])
     create index(:supports, [:expression_id])
     create index(:supports, [:for_group_id])
-    create unique_index(:supports, [:user_id, :expression_id, :for_group_id], name: :unique_support)
+
+    create unique_index(:supports, [:user_id, :expression_id, :for_group_id],
+             name: :unique_support
+           )
 
     create index(:fully_supporteds, [:expression_id])
     create index(:fully_supporteds, [:group_id])
-    create unique_index(:fully_supporteds, [:expression_id, :group_id], name: :unique_fully_supported)
+
+    create unique_index(:fully_supporteds, [:expression_id, :group_id],
+             name: :unique_fully_supported
+           )
   end
 end
-

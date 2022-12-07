@@ -14,7 +14,8 @@ defmodule VisionsUnite.Repo.Migrations.CreateExpressions do
     # Expressions seeking support
     create table(:seeking_supports) do
       add :expression_id, references(:expressions, on_delete: :delete_all), null: false
-      add :for_group_id, references(:expressions, on_delete: :delete_all), null: true # NOTE can be null (root expressions)
+      # NOTE can be null (root expressions)
+      add :for_group_id, references(:expressions, on_delete: :delete_all), null: true
       add :user_id, references(:users, on_delete: :delete_all), null: false
 
       timestamps()
@@ -44,10 +45,15 @@ defmodule VisionsUnite.Repo.Migrations.CreateExpressions do
     create unique_index(:expression_linkages, [:expression_id, :link_id], name: :unique_link)
 
     create index(:expression_subscriptions, [:expression_id, :user_id, :subscribe])
-    create unique_index(:expression_subscriptions, [:expression_id, :user_id, :subscribe], name: :unique_subscription)
+
+    create unique_index(:expression_subscriptions, [:expression_id, :user_id, :subscribe],
+             name: :unique_subscription
+           )
 
     create index(:seeking_supports, [:user_id])
-    create unique_index(:seeking_supports, [:expression_id, :user_id, :for_group_id], name: :unique_support_seek)
+
+    create unique_index(:seeking_supports, [:expression_id, :user_id, :for_group_id],
+             name: :unique_support_seek
+           )
   end
 end
-

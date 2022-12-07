@@ -7,7 +7,6 @@ defmodule VisionsUnite.Expressions do
 
   alias VisionsUnite.Repo
 
-  alias VisionsUnite.Supports.Support
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.ExpressionLinkages
   alias VisionsUnite.SeekingSupports
@@ -55,9 +54,9 @@ defmodule VisionsUnite.Expressions do
   def list_ignored_expressions(user_id) do
     ignored_query =
       from e in Expression,
-      join: es in ExpressionSubscription,
-      on: es.expression_id == e.id and es.user_id == ^user_id,
-      where: es.subscribe == false
+        join: es in ExpressionSubscription,
+        on: es.expression_id == e.id and es.user_id == ^user_id,
+        where: es.subscribe == false
 
     Repo.all(ignored_query)
   end
@@ -78,24 +77,23 @@ defmodule VisionsUnite.Expressions do
 
     fully_supported_by_group_query =
       from e in Expression,
-      join: fs in FullySupported,
-      on: fs.expression_id == e.id,
-      join: es in ExpressionSubscription,
-      where: es.expression_id == fs.group_id and
-             fs.group_id in ^group_ids,
-      distinct: true
+        join: fs in FullySupported,
+        on: fs.expression_id == e.id,
+        join: es in ExpressionSubscription,
+        where:
+          es.expression_id == fs.group_id and
+            fs.group_id in ^group_ids,
+        distinct: true
 
-    fully_supported_expressions_by_group =
-      Repo.all(fully_supported_by_group_query)
+    fully_supported_expressions_by_group = Repo.all(fully_supported_by_group_query)
 
     fully_supported_root_query =
       from e in Expression,
-      join: fs in FullySupported,
-      on: fs.expression_id == e.id,
-      where: is_nil(fs.group_id)
+        join: fs in FullySupported,
+        on: fs.expression_id == e.id,
+        where: is_nil(fs.group_id)
 
-    fully_supported_root_expressions =
-      Repo.all(fully_supported_root_query)
+    fully_supported_root_expressions = Repo.all(fully_supported_root_query)
 
     fully_supported_root_expressions ++ fully_supported_expressions_by_group
   end
@@ -114,8 +112,9 @@ defmodule VisionsUnite.Expressions do
     # NOTE this will return even expressions that the author has ignored
     # SO! You should have another list in live.ex... "ignored expressions"
     # ... then you can let the liveview handle the de-duping
-    query = from e in Expression,
-      where: e.author_id == ^user_id
+    query =
+      from e in Expression,
+        where: e.author_id == ^user_id
 
     Repo.all(query)
   end
@@ -130,10 +129,11 @@ defmodule VisionsUnite.Expressions do
 
   """
   def list_expressions_seeking_support_from_user(user_id) do
-    query = from i in Expression,
-      join: se in SeekingSupport,
-      on: i.id == se.expression_id,
-      where: se.user_id == ^user_id
+    query =
+      from i in Expression,
+        join: se in SeekingSupport,
+        on: i.id == se.expression_id,
+        where: se.user_id == ^user_id
 
     Repo.all(query)
   end
@@ -148,11 +148,13 @@ defmodule VisionsUnite.Expressions do
 
   """
   def list_subscribed_expressions_for_user(user_id) do
-    query = from e in Expression,
-      join: es in ExpressionSubscription,
-      on: e.id == es.expression_id,
-      where: es.user_id == ^user_id and
-             es.subscribe == true
+    query =
+      from e in Expression,
+        join: es in ExpressionSubscription,
+        on: e.id == es.expression_id,
+        where:
+          es.user_id == ^user_id and
+            es.subscribe == true
 
     Repo.all(query)
   end
@@ -172,6 +174,7 @@ defmodule VisionsUnite.Expressions do
 
   """
   def get_expression!(nil), do: nil
+
   def get_expression!(id) do
     Repo.get!(Expression, id)
   end
@@ -185,11 +188,13 @@ defmodule VisionsUnite.Expressions do
       "some expression title"
   """
   def get_expression_title(nil), do: nil
+
   def get_expression_title(id) do
     query =
       from e in Expression,
-      where: e.id == ^id,
-      select: [:title]
+        where: e.id == ^id,
+        select: [:title]
+
     result = Repo.one(query)
     result.title
   end
@@ -227,7 +232,6 @@ defmodule VisionsUnite.Expressions do
   def create_expression(attrs, linked_expressions) do
     case create_expression(attrs) do
       {:ok, expression} ->
-
         # Try to link...
         linked_expressions
         |> Enum.each(fn linked_expression ->
@@ -238,8 +242,7 @@ defmodule VisionsUnite.Expressions do
         end)
 
         # Let's now seek supporters for this expression
-        seeking_supports =
-          SeekingSupports.seek_supporters(expression)
+        seeking_supports = SeekingSupports.seek_supporters(expression)
 
         {:ok, expression, seeking_supports}
 
@@ -295,4 +298,3 @@ defmodule VisionsUnite.Expressions do
     Expression.changeset(expression, attrs)
   end
 end
-

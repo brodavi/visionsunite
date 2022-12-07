@@ -6,7 +6,6 @@ defmodule VisionsUnite.Expressions.Expression do
   alias VisionsUnite.ExpressionLinkages.ExpressionLinkage
   alias VisionsUnite.Expressions
   alias VisionsUnite.ExpressionSubscriptions
-  alias VisionsUnite.FullySupporteds
   alias VisionsUnite.FullySupporteds.FullySupported
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Supports
@@ -40,7 +39,6 @@ defmodule VisionsUnite.Expressions.Expression do
   end
 
   def annotate_with_group_data(expression) when is_map(expression) do
-
     #
     # TODO this should probably rely on expression.group_count!
     #      instead of hitting the DB again
@@ -64,12 +62,10 @@ defmodule VisionsUnite.Expressions.Expression do
       |> Enum.map(fn group ->
         subscriber_count =
           ExpressionSubscriptions.count_expression_subscriptions_for_expression(group.link.id)
-        sortition_count =
-          SeekingSupports.calculate_sortition_size(subscriber_count)
-        quorum_count =
-          Kernel.round(sortition_count * 0.51)
-        support_count =
-          Supports.count_support_for_expression_for_group(expression, group.link.id)
+
+        sortition_count = SeekingSupports.calculate_sortition_size(subscriber_count)
+        quorum_count = Kernel.round(sortition_count * 0.51)
+        support_count = Supports.count_support_for_expression_for_group(expression, group.link.id)
 
         Map.merge(
           group,
@@ -85,7 +81,7 @@ defmodule VisionsUnite.Expressions.Expression do
     # okay... if expression_linkages is [], then this is a
     # root expression, and it will not populate with data..
 
-    Map.merge(expression, %{ groups: groups })
+    Map.merge(expression, %{groups: groups})
   end
 
   def annotate_with_linked_expressions(expressions) when is_list(expressions) do
@@ -96,7 +92,6 @@ defmodule VisionsUnite.Expressions.Expression do
   end
 
   def annotate_with_linked_expressions(expression) when is_map(expression) do
-
     #
     # TODO this should probably rely on expression.group_count!
     #      instead of hitting the DB again
@@ -111,11 +106,14 @@ defmodule VisionsUnite.Expressions.Expression do
       expression.expression_linkages
       |> Enum.map(fn linked_expression ->
         subscriber_count =
-          ExpressionSubscriptions.count_expression_subscriptions_for_expression(linked_expression.link.id)
+          ExpressionSubscriptions.count_expression_subscriptions_for_expression(
+            linked_expression.link.id
+          )
+
         quorum_count =
           Kernel.round(SeekingSupports.calculate_sortition_size(subscriber_count) * 0.51)
-        support_count =
-          Supports.count_support_for_expression(linked_expression.link)
+
+        support_count = Supports.count_support_for_expression(linked_expression.link)
 
         Map.merge(
           linked_expression,
@@ -127,7 +125,7 @@ defmodule VisionsUnite.Expressions.Expression do
         )
       end)
 
-    Map.merge(expression, %{ linked_expressions: linked_expressions })
+    Map.merge(expression, %{linked_expressions: linked_expressions})
   end
 
   def annotate_with_supports(expressions) when is_list(expressions) do
@@ -170,9 +168,10 @@ defmodule VisionsUnite.Expressions.Expression do
       end)
 
     seeking_support_from =
-      if is_nil(List.first(seeking_support_from)) or List.first(seeking_support_from).for_group_id == nil do
+      if is_nil(List.first(seeking_support_from)) or
+           List.first(seeking_support_from).for_group_id == nil do
         seeking_support_from
-        |> Enum.map(fn ss ->
+        |> Enum.map(fn _ss ->
           %{id: nil, title: "everyone"}
         end)
       else
@@ -189,11 +188,13 @@ defmodule VisionsUnite.Expressions.Expression do
 
   def annotate_subscribed(expression, user_id) when is_map(expression) do
     subscribed =
-      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression.id, user_id)
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(
+        expression.id,
+        user_id
+      )
 
     Map.merge(expression, %{
       subscribed: subscribed
     })
   end
 end
-

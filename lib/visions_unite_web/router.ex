@@ -16,7 +16,7 @@ defmodule VisionsUniteWeb.Router do
   pipeline :api do
     plug :accepts, ["json"]
   end
-  
+
   pipeline :user_session do
     plug VisionsUniteWeb.UserSessionPlug
   end
@@ -114,4 +114,3 @@ defmodule VisionsUniteWeb.Router do
     post "/users/confirm/:token", UserConfirmationController, :update
   end
 end
-

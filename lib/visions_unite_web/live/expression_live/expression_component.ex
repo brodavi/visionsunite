@@ -2,6 +2,10 @@ defmodule VisionsUniteWeb.ExpressionComponent do
   use VisionsUniteWeb, :live_view
   use Phoenix.Component
 
+  def render(assigns) do
+    expression(assigns)
+  end
+
   def expression(assigns) do
     ~H"""
     <%= if Map.has_key?(assigns, :v3) do %>
@@ -90,4 +94,3 @@ defmodule VisionsUniteWeb.ExpressionComponent do
     """
   end
 end
-

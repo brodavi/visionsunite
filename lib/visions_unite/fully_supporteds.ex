@@ -129,30 +129,28 @@ defmodule VisionsUnite.FullySupporteds do
     query =
       if is_nil(group_id) do
         from s in Support,
-        where: s.expression_id == ^expression.id
+          where: s.expression_id == ^expression.id
       else
         from s in Support,
-        where: s.expression_id == ^expression.id and
-        s.for_group_id == ^group_id
+          where:
+            s.expression_id == ^expression.id and
+              s.for_group_id == ^group_id
       end
 
     subscription_count =
       ExpressionSubscriptions.count_expression_subscriptions_for_expression(group_id)
 
-    quorum =
-      Kernel.round(SeekingSupports.calculate_sortition_size(subscription_count) * 0.51)
+    quorum = Kernel.round(SeekingSupports.calculate_sortition_size(subscription_count) * 0.51)
 
-    aggregate =
-      Repo.aggregate(query, :sum, :support)
+    aggregate = Repo.aggregate(query, :sum, :support)
 
     case aggregate do
       nil ->
         false
+
       _ ->
-        total_support =
-          Kernel.round(aggregate)
+        total_support = Kernel.round(aggregate)
         total_support >= quorum
     end
   end
 end
-

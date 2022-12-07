@@ -21,4 +21,3 @@ defmodule VisionsUnite.SeekingSupports.SeekingSupport do
     |> unique_constraint(:unique_support_seek, name: :unique_support_seek)
   end
 end
-

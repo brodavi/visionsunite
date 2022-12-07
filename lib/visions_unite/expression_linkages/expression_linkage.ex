@@ -19,4 +19,3 @@ defmodule VisionsUnite.ExpressionLinkages.ExpressionLinkage do
     |> unique_constraint(:unique_link, name: :unique_link)
   end
 end
-

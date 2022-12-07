@@ -19,4 +19,3 @@ defmodule VisionsUnite.FullySupporteds.FullySupported do
     |> unique_constraint(:unique_fully_supported, name: :unique_fully_supported)
   end
 end
-

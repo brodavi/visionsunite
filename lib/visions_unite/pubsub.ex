@@ -4,9 +4,9 @@ defmodule VisionsUniteWeb.SharedPubSub do
   end
 
   def broadcast({:error, _reason} = error, _event), do: error
+
   def broadcast({:ok, data}, event, channel) do
     Phoenix.PubSub.broadcast(VisionsUnite.PubSub, channel, {event, data})
-    {:ok, data }
+    {:ok, data}
   end
 end
-

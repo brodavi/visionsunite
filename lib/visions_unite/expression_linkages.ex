@@ -33,8 +33,10 @@ defmodule VisionsUnite.ExpressionLinkages do
 
   """
   def list_expression_linkages_for_expression(expression_id) do
-    query = from ep in ExpressionLinkage,
-      where: ep.expression_id == ^expression_id
+    query =
+      from ep in ExpressionLinkage,
+        where: ep.expression_id == ^expression_id
+
     Repo.all(query)
   end
 
@@ -48,14 +50,15 @@ defmodule VisionsUnite.ExpressionLinkages do
 
   """
   def list_parents_for_expression_and_user(expression_id, user_id) do
-    group_ids = 
+    group_ids =
       ExpressionSubscriptions.list_expression_subscriptions_for_user(user_id)
       |> Enum.map(& &1.expression_id)
 
     query =
       from el in ExpressionLinkage,
-      where: el.expression_id == ^expression_id
-         and el.link_id in ^group_ids
+        where:
+          el.expression_id == ^expression_id and
+            el.link_id in ^group_ids
 
     Repo.all(query)
   end
@@ -70,8 +73,10 @@ defmodule VisionsUnite.ExpressionLinkages do
 
   """
   def list_expression_linkages_for_link(link_id) do
-    query = from ep in ExpressionLinkage,
-      where: ep.link_id == ^link_id
+    query =
+      from ep in ExpressionLinkage,
+        where: ep.link_id == ^link_id
+
     Repo.all(query)
   end
 
@@ -156,4 +161,3 @@ defmodule VisionsUnite.ExpressionLinkages do
     ExpressionLinkage.changeset(expression_linkage, attrs)
   end
 end
-

@@ -2,6 +2,10 @@ defmodule VisionsUniteWeb.NavComponent do
   use VisionsUniteWeb, :live_view
   use Phoenix.Component
 
+  def render(assigns) do
+    nav(assigns)
+  end
+
   def nav(assigns) do
     ~H"""
     <nav>
@@ -44,4 +48,3 @@ defmodule VisionsUniteWeb.NavComponent do
     """
   end
 end
-

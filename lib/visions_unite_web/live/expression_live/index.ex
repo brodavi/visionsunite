@@ -1,11 +1,9 @@
 defmodule VisionsUniteWeb.ExpressionLive.Index do
   use VisionsUniteWeb, :live_view
 
-  alias VisionsUnite.ExpressionLinkages
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.ExpressionSubscriptions
-  alias VisionsUnite.FullySupporteds
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Supports
   alias VisionsUniteWeb.ExpressionComponent
@@ -20,8 +18,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
     user_id = session["current_user_id"]
 
-    ignored_expressions =
-      list_ignored_expressions(user_id)
+    ignored_expressions = list_ignored_expressions(user_id)
 
     my_expressions =
       list_my_expressions(user_id)
@@ -37,20 +34,20 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
       |> filter_members_of(my_subscriptions)
       |> filter_members_of(my_expressions)
 
-    my_seeking_supports =
-      list_my_seeking_supports(user_id)
+    my_seeking_supports = list_my_seeking_supports(user_id)
 
     socket =
       socket
       |> assign(:current_user_id, user_id)
       |> assign(:my_expressions, my_expressions)
 
-    # TODO we should Enum.group_by(& &1.linked_expressions) here, so that it groups subscribed expressions by "parents"
+      # TODO we should Enum.group_by(& &1.linked_expressions) here, so that it groups subscribed expressions by "parents"
       |> assign(:my_subscriptions, my_subscriptions)
-    # TODO we should have a separate page for ignored expressions (fully-supported expressions that the user is intentionally ignoring)
+      # TODO we should have a separate page for ignored expressions (fully-supported expressions that the user is intentionally ignoring)
       |> assign(:fully_supported_expressions, fully_supported_expressions)
       |> assign(:ignored_expressions, ignored_expressions)
       |> assign(:my_seeking_supports, my_seeking_supports)
+
     {:ok, socket}
   end
 
@@ -72,12 +69,18 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
   end
 
   @impl true
-  def handle_event("my_support", %{"support_form" => %{
-    "expression_id" => expression_id,
-    "support" => support,
-    "note" => note,
-    "for_group_id" => for_group_id
-  }}, socket) do
+  def handle_event(
+        "my_support",
+        %{
+          "support_form" => %{
+            "expression_id" => expression_id,
+            "support" => support,
+            "note" => note,
+            "for_group_id" => for_group_id
+          }
+        },
+        socket
+      ) do
     user_id = socket.assigns.current_user_id
 
     Supports.create_support(%{
@@ -92,19 +95,21 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
       case support do
         "-1" ->
           "objected to"
+
         "0" ->
           "ignored"
+
         "1" ->
           "supported"
       end
 
-    my_seeking_supports =
-      list_my_seeking_supports(user_id)
+    my_seeking_supports = list_my_seeking_supports(user_id)
 
     socket =
       socket
       |> put_flash(:info, "Successfully #{actioned} expression. Thank you!")
       |> assign(:my_seeking_supports, my_seeking_supports)
+
     {:noreply, socket}
   end
 
@@ -113,7 +118,10 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     user_id = socket.assigns.current_user_id
 
     existing_subscription =
-      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(
+        expression_id,
+        user_id
+      )
 
     case existing_subscription do
       nil ->
@@ -122,16 +130,17 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
           user_id: user_id,
           subscribe: true
         })
+
       _ ->
         ExpressionSubscriptions.update_expression_subscription(
-          existing_subscription, %{
+          existing_subscription,
+          %{
             subscribe: true
           }
         )
     end
 
-    ignored_expressions =
-      list_ignored_expressions(user_id)
+    ignored_expressions = list_ignored_expressions(user_id)
 
     my_expressions =
       list_my_expressions(user_id)
@@ -154,6 +163,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
       |> assign(:my_expressions, my_expressions)
       |> assign(:my_subscriptions, my_subscriptions)
       |> assign(:fully_supported_expressions, fully_supported_expressions)
+
     {:noreply, socket}
   end
 
@@ -169,7 +179,10 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
 
     # TODO: do upsert instead of this
     existing_subscription =
-      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(
+        expression_id,
+        user_id
+      )
 
     case existing_subscription do
       nil ->
@@ -178,16 +191,17 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
           user_id: user_id,
           subscribe: false
         })
+
       _ ->
         ExpressionSubscriptions.update_expression_subscription(
-          existing_subscription, %{
+          existing_subscription,
+          %{
             subscribe: false
           }
         )
     end
 
-    ignored_expressions =
-      list_ignored_expressions(user_id)
+    ignored_expressions = list_ignored_expressions(user_id)
 
     my_expressions =
       list_my_expressions(user_id)
@@ -217,15 +231,16 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     user_id = socket.assigns.current_user_id
 
     expression_subscription =
-      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(
+        expression_id,
+        user_id
+      )
 
     ExpressionSubscriptions.delete_expression_subscription(expression_subscription)
 
-    ignored_expressions =
-      list_ignored_expressions(user_id)
+    ignored_expressions = list_ignored_expressions(user_id)
 
-    my_expressions =
-      list_my_expressions(user_id)
+    my_expressions = list_my_expressions(user_id)
 
     my_subscriptions =
       list_my_subscriptions(user_id)
@@ -252,20 +267,17 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     # If the expression is in my expressions or my seeking supports, update. otherwise
     # it doesn't concern this user
     #
-    if Enum.any?(socket.assigns.my_expressions, & &1.id == expression.id) or
-       Enum.any?(socket.assigns.my_seeking_supports, & &1.expression.id == expression.id) do
-
+    if Enum.any?(socket.assigns.my_expressions, &(&1.id == expression.id)) or
+         Enum.any?(socket.assigns.my_seeking_supports, &(&1.expression.id == expression.id)) do
       user_id = socket.assigns.current_user_id
 
-      ignored_expressions =
-        list_ignored_expressions(user_id)
+      ignored_expressions = list_ignored_expressions(user_id)
 
       my_expressions =
         list_my_expressions(user_id)
         |> filter_members_of(ignored_expressions)
 
-      my_seeking_supports =
-        list_my_seeking_supports(user_id)
+      my_seeking_supports = list_my_seeking_supports(user_id)
 
       socket =
         socket
@@ -286,8 +298,7 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     # TODO: do the more efficient filtering expression, don't hit the DB
     #
 
-    my_seeking_supports =
-      list_my_seeking_supports(socket.assigns.current_user_id)
+    my_seeking_supports = list_my_seeking_supports(socket.assigns.current_user_id)
 
     socket =
       socket
@@ -307,14 +318,11 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     # subscribed to!
     #
 
-    my_seeking_supports =
-      list_my_seeking_supports(user_id)
+    my_seeking_supports = list_my_seeking_supports(user_id)
 
-    ignored_expressions =
-      list_ignored_expressions(user_id)
+    ignored_expressions = list_ignored_expressions(user_id)
 
-    my_subscriptions =
-      list_my_subscriptions(user_id)
+    my_subscriptions = list_my_subscriptions(user_id)
 
     fully_supported_expressions =
       list_fully_supported_expressions(user_id)
@@ -325,13 +333,13 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
       socket
       |> assign(my_seeking_supports: my_seeking_supports)
       |> assign(fully_supported_expressions: fully_supported_expressions)
+
     {:noreply, socket}
   end
 
   defp list_my_seeking_supports(user_id) do
     SeekingSupports.list_support_sought_for_user(user_id)
     |> Enum.map(fn ss ->
-
       expression =
         Expressions.get_expression!(ss.expression_id)
         |> Expression.annotate_with_group_data()
@@ -387,4 +395,3 @@ defmodule VisionsUniteWeb.ExpressionLive.Index do
     end)
   end
 end
-

@@ -47,10 +47,6 @@
 <%= if @expression.seeking_support_from do %>
   <hr>
 
-  <p>
-    You are one of <%= List.first(@expression.groups).sortition_count %> people to decide if this message should go to all <%= List.first(@expression.groups).subscriber_count %> people in group: <b><%= List.first(@expression.groups).link.title %></b>. <br> Do you support this expression for this group?
-  </p>
-
   <div class="roww">
 
     <.form
@@ -60,26 +56,24 @@
       phx-submit="my_support"
       class="columnn">
 
-      <%= textarea f, :note, rows: 6, placeholder: "Reasons for why you support (optional)" %>
-      <%= submit "I support", phx_disable_with: "Saving...", class: "small" %>
+      <span>I support this expression<%= radio_button f, :support, 1 %></span>
+      <span>I reject this expression<%= radio_button f, :support, -1 %></span>
 
-      <%= hidden_input f, :support, value: 1 %>
-      <%= hidden_input f, :expression_id, value: @expression.id %>
-      <%= hidden_input f, :for_group_id, value: @expression.seeking_support_from.id %>
+      <%= submit "submit", phx_disable_with: "Saving...", value: :test2 %>
 
-    </.form>
+      <small>
+        <details>
+          <summary>
+            Optional feedback
+          </summary>
+          <%= textarea f, :note, rows: 6, placeholder: "Optional reasons for why you support or reject (only visible by expression author)" %>
+        </details>
+      </small>
 
-    <.form
-      let={f}
-      for={:support_form}
-      id={"do_not_support-form-#{@expression.id}"}
-      phx-submit="my_support"
-      class="columnn">
+      <p>
+        NOTE: You are 1 of <%= List.first(@expression.groups).sortition_count %> people to decide if this message should go to all <%= List.first(@expression.groups).subscriber_count %> people in group: <b><%= List.first(@expression.groups).link.title %></b>.
+      </p>
 
-      <%= textarea f, :note, rows: 6, placeholder: "Explanation for why I ignore (optional)"%>
-      <%= submit "Ignore", phx_disable_with: "Saving...", class: "small" %>
-
-      <%= hidden_input f, :support, value: 0 %>
       <%= hidden_input f, :expression_id, value: @expression.id %>
       <%= hidden_input f, :for_group_id, value: @expression.seeking_support_from.id %>
 

@@ -1,5 +1,4 @@
 defmodule VisionsUnite.SeekingSupports do
-
   @moduledoc """
   The SeekingSupport context.
   """
@@ -27,10 +26,14 @@ defmodule VisionsUnite.SeekingSupports do
     query =
       if for_group_id == "" do
         from ss in SeekingSupport,
-        where: ss.expression_id == ^expression.id and ss.user_id == ^user.id and is_nil(ss.for_group_id)
+          where:
+            ss.expression_id == ^expression.id and ss.user_id == ^user.id and
+              is_nil(ss.for_group_id)
       else
         from ss in SeekingSupport,
-        where: ss.expression_id == ^expression.id and ss.user_id == ^user.id and ss.for_group_id == ^for_group_id
+          where:
+            ss.expression_id == ^expression.id and ss.user_id == ^user.id and
+              ss.for_group_id == ^for_group_id
       end
 
     Repo.one(query)
@@ -48,7 +51,8 @@ defmodule VisionsUnite.SeekingSupports do
   def list_support_sought_for_user(user_id) do
     query =
       from ss in SeekingSupport,
-      where: ss.user_id == ^user_id
+        where: ss.user_id == ^user_id
+
     Repo.all(query)
   end
 
@@ -64,7 +68,8 @@ defmodule VisionsUnite.SeekingSupports do
   def list_support_sought_for_expression(expression) do
     query =
       from ss in SeekingSupport,
-      where: ss.expression_id == ^expression.id
+        where: ss.expression_id == ^expression.id
+
     Repo.all(query)
   end
 
@@ -95,12 +100,9 @@ defmodule VisionsUnite.SeekingSupports do
       [%User{}, ...]
   """
   def seek_supporters(expression) do
+    subscriptions_maps = ExpressionSubscriptions.get_subscribers_maps(expression)
 
-    subscriptions_maps =
-      ExpressionSubscriptions.get_subscribers_maps(expression)
-
-    sortitions_maps =
-      get_sortition_maps(subscriptions_maps, expression)
+    sortitions_maps = get_sortition_maps(subscriptions_maps, expression)
 
     #
     # this is the "filtered" set of map of expression_ids and users, randomly
@@ -113,8 +115,7 @@ defmodule VisionsUnite.SeekingSupports do
     # Seek support for each linked expression group
     sortitions_maps
     |> Enum.each(fn sortition_group ->
-      group_id =
-        List.first(Map.keys(sortition_group))
+      group_id = List.first(Map.keys(sortition_group))
 
       Map.get(sortition_group, group_id)
       |> Enum.each(fn subscriber ->
@@ -159,7 +160,8 @@ defmodule VisionsUnite.SeekingSupports do
   def delete_all_seeking_support_for_expression(%Expression{} = expression) do
     query =
       from ss in SeekingSupport,
-      where: ss.expression_id == ^expression.id
+        where: ss.expression_id == ^expression.id
+
     Repo.delete_all(query)
   end
 
@@ -175,15 +177,17 @@ defmodule VisionsUnite.SeekingSupports do
   def delete_all_seeking_support_for_expression_with_group(%Expression{} = expression, nil) do
     query =
       from ss in SeekingSupport,
-      where: ss.expression_id == ^expression.id
+        where: ss.expression_id == ^expression.id
+
     Repo.delete_all(query)
   end
 
   def delete_all_seeking_support_for_expression_with_group(%Expression{} = expression, group_id) do
     query =
       from ss in SeekingSupport,
-      where: ss.expression_id == ^expression.id and
-    ss.for_group_id == ^group_id
+        where:
+          ss.expression_id == ^expression.id and
+            ss.for_group_id == ^group_id
 
     Repo.delete_all(query)
   end
@@ -198,15 +202,14 @@ defmodule VisionsUnite.SeekingSupports do
       |> Map.keys()
       |> List.first()
 
-    linkages =
-      ExpressionLinkages.list_expression_linkages_for_expression(expression.id)
+    linkages = ExpressionLinkages.list_expression_linkages_for_expression(expression.id)
 
     if is_nil(first_key) and Enum.count(linkages) == 0 do
       # this is a root expression...
       # pull sortition list from group of all users
       everyone =
         Accounts.list_users_ids()
-        |> Enum.filter(& &1 != expression.author_id)
+        |> Enum.filter(&(&1 != expression.author_id))
 
       sortition_num =
         everyone
@@ -216,7 +219,6 @@ defmodule VisionsUnite.SeekingSupports do
       [%{nil => Enum.take_random(everyone, Kernel.round(sortition_num))}]
     else
       Enum.map(subscriptions_maps, fn subscription_map ->
-
         if subscription_map == %{nil: nil} or subscription_map == %{} do
           %{nil => []}
         else
@@ -227,7 +229,7 @@ defmodule VisionsUnite.SeekingSupports do
 
           subscribers_list =
             Map.get(subscription_map, group_id)
-            |> Enum.filter(& &1 != expression.author_id)
+            |> Enum.filter(&(&1 != expression.author_id))
             |> Enum.map(& &1.user_id)
 
           # Get the sortition for each group separately
@@ -256,8 +258,8 @@ defmodule VisionsUnite.SeekingSupports do
   #
 
   def calculate_sortition_size(0), do: 0
-  def calculate_sortition_size(group_count) do
 
+  def calculate_sortition_size(group_count) do
     ## Calculating Sample Size with Finite Population from https://www.youtube.com/watch?v=gLD4tENS82c
     ## c = Confidence Level = 95%
     ## p = Population Proportion = 0.5 (most conservative)
@@ -274,8 +276,16 @@ defmodule VisionsUnite.SeekingSupports do
 
     p = 0.5
     e = 0.04
-    pop = if group_count == %{} do Accounts.count_users() else group_count end
-    z = 1.96 # For 95% confidence level
+
+    pop =
+      if group_count == %{} do
+        Accounts.count_users()
+      else
+        group_count
+      end
+
+    # For 95% confidence level
+    z = 1.96
 
     numerator = Float.pow(z, 2) * (p * (1 - p)) / Float.pow(e, 2)
 
@@ -284,4 +294,3 @@ defmodule VisionsUnite.SeekingSupports do
     Kernel.round(numerator / denominator)
   end
 end
-

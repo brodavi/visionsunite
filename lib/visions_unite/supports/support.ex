@@ -23,4 +23,3 @@ defmodule VisionsUnite.Supports.Support do
     |> unique_constraint(:unique_support, name: :unique_support)
   end
 end
-

@@ -1,7 +1,6 @@
 defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
   use VisionsUniteWeb, :live_view
 
-  alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.ExpressionSubscriptions
@@ -18,8 +17,7 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
 
     user_id = session["current_user_id"]
 
-    my_expressions =
-      list_my_expressions(user_id)
+    my_expressions = list_my_expressions(user_id)
 
     my_subscriptions =
       list_my_subscriptions(user_id)
@@ -29,6 +27,7 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
       socket
       |> assign(:current_user_id, user_id)
       |> assign(:my_subscriptions, my_subscriptions)
+
     {:ok, socket}
   end
 
@@ -54,12 +53,14 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
     user_id = socket.assigns.current_user_id
 
     expression_subscription =
-      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(
+        expression_id,
+        user_id
+      )
 
     ExpressionSubscriptions.delete_expression_subscription(expression_subscription)
 
-    my_expressions =
-      list_my_expressions(user_id)
+    my_expressions = list_my_expressions(user_id)
 
     my_subscriptions =
       list_my_subscriptions(user_id)
@@ -93,4 +94,3 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
     end)
   end
 end
-

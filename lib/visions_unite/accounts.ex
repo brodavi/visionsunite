@@ -20,9 +20,11 @@ defmodule VisionsUnite.Accounts do
 
   """
   def list_users do
-    query = from u in User
+    query = from(u in User)
+
     Repo.all(query)
-    |> Enum.filter(& &1.id != 1) # exclude default superuser
+    # exclude default superuser
+    |> Enum.filter(&(&1.id != 1))
   end
 
   @doc """
@@ -36,8 +38,10 @@ defmodule VisionsUnite.Accounts do
   """
   def list_users_ids do
     query = from u in User, select: u.id
+
     Repo.all(query)
-    |> Enum.filter(& &1 != 1) # exclude default superuser
+    # exclude default superuser
+    |> Enum.filter(&(&1 != 1))
   end
 
   @doc """
@@ -50,7 +54,8 @@ defmodule VisionsUnite.Accounts do
 
   """
   def count_users do
-    Repo.aggregate(User, :count) - 1 # exclude default superuser
+    # exclude default superuser
+    Repo.aggregate(User, :count) - 1
   end
 
   @doc """

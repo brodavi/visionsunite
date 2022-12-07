@@ -36,9 +36,11 @@ defmodule VisionsUnite.Supports do
 
   """
   def list_supports_for_expression(expression) do
-    query = from s in Support,
-      where: s.expression_id == ^expression.id and
-             s.support > 0.0
+    query =
+      from s in Support,
+        where:
+          s.expression_id == ^expression.id and
+            s.support > 0.0
 
     Repo.all(query)
   end
@@ -53,8 +55,9 @@ defmodule VisionsUnite.Supports do
 
   """
   def list_all_supports_for_expression(expression) do
-    query = from s in Support,
-      where: s.expression_id == ^expression.id
+    query =
+      from s in Support,
+        where: s.expression_id == ^expression.id
 
     Repo.all(query)
   end
@@ -69,9 +72,11 @@ defmodule VisionsUnite.Supports do
 
   """
   def count_support_for_expression(expression) do
-    query = from s in Support,
-      where: s.expression_id == ^expression.id and
-             s.support > 0.0
+    query =
+      from s in Support,
+        where:
+          s.expression_id == ^expression.id and
+            s.support > 0.0
 
     Repo.aggregate(query, :count)
   end
@@ -85,12 +90,16 @@ defmodule VisionsUnite.Supports do
       83
 
   """
-  def count_support_for_expression_for_group(expression, nil), do: count_support_for_expression(expression)
+  def count_support_for_expression_for_group(expression, nil),
+    do: count_support_for_expression(expression)
+
   def count_support_for_expression_for_group(expression, group_id) do
-    query = from s in Support,
-      where: s.expression_id == ^expression.id and
-             s.support > 0.0 and
-             s.for_group_id == ^group_id
+    query =
+      from s in Support,
+        where:
+          s.expression_id == ^expression.id and
+            s.support > 0.0 and
+            s.for_group_id == ^group_id
 
     Repo.aggregate(query, :count)
   end
@@ -124,7 +133,6 @@ defmodule VisionsUnite.Supports do
 
   """
   def create_support(attrs \\ %{}) do
-
     for_group_id = attrs.for_group_id
     expression_id = attrs.expression_id
     user_id = attrs.user_id
@@ -132,7 +140,11 @@ defmodule VisionsUnite.Supports do
     user = Accounts.get_user!(user_id)
 
     existing_seeking_support =
-      SeekingSupports.get_seeking_support_for_expression_and_user_for_group!(expression, user, for_group_id)
+      SeekingSupports.get_seeking_support_for_expression_and_user_for_group!(
+        expression,
+        user,
+        for_group_id
+      )
 
     if !is_nil(existing_seeking_support) do
       support =
@@ -140,15 +152,11 @@ defmodule VisionsUnite.Supports do
         |> Support.changeset(attrs)
         |> Repo.insert()
 
-      {:ok, %Support{ expression_id: expression_id, user_id: user_id, for_group_id: for_group_id }} = support
-
-
       # Remove the existing seeking support from the user that just clicked
       SeekingSupports.delete_seeking_support(existing_seeking_support)
 
       # Seeking Support has been deleted.... now we check for support
-      subscriber_counts_maps =
-        ExpressionSubscriptions.get_subscriber_counts_maps(expression)
+      subscriber_counts_maps = ExpressionSubscriptions.get_subscriber_counts_maps(expression)
 
       quorum_maps =
         Enum.map(subscriber_counts_maps, fn subscriber_counts_map ->
@@ -157,14 +165,11 @@ defmodule VisionsUnite.Supports do
             |> Map.keys()
             |> List.first()
 
-          subscribers_count =
-            Map.get(subscriber_counts_map, group_id)
+          subscribers_count = Map.get(subscriber_counts_map, group_id)
 
-          sortition_num =
-            SeekingSupports.calculate_sortition_size(subscribers_count)
+          sortition_num = SeekingSupports.calculate_sortition_size(subscribers_count)
 
-          quorum_size =
-            Kernel.round(sortition_num * 0.51)
+          quorum_size = Kernel.round(sortition_num * 0.51)
 
           %{group_id => quorum_size}
         end)
@@ -176,21 +181,27 @@ defmodule VisionsUnite.Supports do
           |> List.first()
 
         if FullySupporteds.is_expression_fully_supported(expression, group_id) do
-
           # if expression has been fully supported BY THIS GROUP, remove ALL seeking support
           # FOR THIS GROUP because the goal has already been reached FOR THIS GROUP
 
-          SeekingSupports.delete_all_seeking_support_for_expression_with_group(expression, group_id)
+          SeekingSupports.delete_all_seeking_support_for_expression_with_group(
+            expression,
+            group_id
+          )
 
           # also, set the expression as fully supported (by creating some FullySupported rows for each group_id), because more users will screw up whether or not it is indeed
 
-          result = FullySupporteds.create_fully_supported(%{
+          FullySupporteds.create_fully_supported(%{
             expression_id: expression.id,
             group_id: group_id
           })
 
           # then broadcast the support for all users
-          VisionsUniteWeb.SharedPubSub.broadcast({:ok, expression}, :expression_fully_supported, "support")
+          VisionsUniteWeb.SharedPubSub.broadcast(
+            {:ok, expression},
+            :expression_fully_supported,
+            "support"
+          )
         end
       end)
 
@@ -250,4 +261,3 @@ defmodule VisionsUnite.Supports do
     Support.changeset(support, attrs)
   end
 end
-

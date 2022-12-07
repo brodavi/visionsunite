@@ -35,13 +35,18 @@ defmodule VisionsUnite.ExpressionsTest do
       expression = expression_fixture()
       update_attrs = %{body: "some updated body"}
 
-      assert {:ok, %Expression{} = expression} = Expressions.update_expression(expression, update_attrs)
+      assert {:ok, %Expression{} = expression} =
+               Expressions.update_expression(expression, update_attrs)
+
       assert expression.body == "some updated body"
     end
 
     test "update_expression/2 with invalid data returns error changeset" do
       expression = expression_fixture()
-      assert {:error, %Ecto.Changeset{}} = Expressions.update_expression(expression, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Expressions.update_expression(expression, @invalid_attrs)
+
       assert expression == Expressions.get_expression!(expression.id)
     end
 

@@ -1,7 +1,6 @@
 defmodule VisionsUniteWeb.MyExpressionsLive.Index do
   use VisionsUniteWeb, :live_view
 
-  alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.ExpressionSubscriptions
@@ -18,8 +17,7 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
 
     user_id = session["current_user_id"]
 
-    ignored_expressions =
-      list_ignored_expressions(user_id)
+    ignored_expressions = list_ignored_expressions(user_id)
 
     my_expressions =
       list_my_expressions(user_id)
@@ -34,6 +32,7 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
       |> assign(:current_user_id, user_id)
       |> assign(:my_expressions, my_expressions)
       |> assign(:my_subscriptions, my_subscriptions)
+
     {:ok, socket}
   end
 
@@ -72,7 +71,10 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
 
     # TODO: do upsert instead of this
     existing_subscription =
-      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(
+        expression_id,
+        user_id
+      )
 
     case existing_subscription do
       nil ->
@@ -81,16 +83,17 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
           user_id: user_id,
           subscribe: false
         })
+
       _ ->
         ExpressionSubscriptions.update_expression_subscription(
-          existing_subscription, %{
+          existing_subscription,
+          %{
             subscribe: false
           }
         )
     end
 
-    ignored_expressions =
-      list_ignored_expressions(user_id)
+    ignored_expressions = list_ignored_expressions(user_id)
 
     my_expressions =
       list_my_expressions(user_id)
@@ -129,4 +132,3 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
     end)
   end
 end
-

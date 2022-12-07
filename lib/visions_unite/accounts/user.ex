@@ -139,4 +139,3 @@ defmodule VisionsUnite.Accounts.User do
     end
   end
 end
-

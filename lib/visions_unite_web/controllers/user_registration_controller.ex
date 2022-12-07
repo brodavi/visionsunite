@@ -13,7 +13,6 @@ defmodule VisionsUniteWeb.UserRegistrationController do
   def create(conn, %{"user" => user_params}) do
     case Accounts.register_user(user_params) do
       {:ok, user} ->
-
         ### Getting rid of user confirmation step for now
 
         # {:ok, _} =

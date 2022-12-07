@@ -10,9 +10,7 @@ defmodule VisionsUnite.SupportsFixtures do
   def support_fixture(attrs \\ %{}) do
     {:ok, support} =
       attrs
-      |> Enum.into(%{
-
-      })
+      |> Enum.into(%{})
       |> VisionsUnite.Supports.create_support()
 
     support

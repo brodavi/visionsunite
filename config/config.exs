@@ -25,16 +25,15 @@ config :visions_unite, VisionsUniteWeb.Endpoint,
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
 config :visions_unite, VisionsUnite.Mailer,
-adapter: Swoosh.Adapters.SMTP,
-relay: System.get_env("EMAIL_RELAY"),
-username: System.get_env("EMAIL_USERNAME"),
-password: System.get_env("EMAIL_PASSWORD"),
-tls: :always,
-auth: :always,
-port: System.get_env("EMAIL_PORT"),
-retries: 2,
-no_mx_lookups: false
-
+  adapter: Swoosh.Adapters.SMTP,
+  relay: System.get_env("EMAIL_RELAY"),
+  username: System.get_env("EMAIL_USERNAME"),
+  password: System.get_env("EMAIL_PASSWORD"),
+  tls: :always,
+  auth: :always,
+  port: System.get_env("EMAIL_PORT"),
+  retries: 2,
+  no_mx_lookups: false
 
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false

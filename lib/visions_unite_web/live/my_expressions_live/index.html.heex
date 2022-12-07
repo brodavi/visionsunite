@@ -1,7 +1,7 @@
 <NavComponent.nav active={@live_action} version={@version} />
 
 <%= if @live_action in [:new, :edit] do %>
-  <.modal return_to={Routes.expression_index_path(@socket, :index)}>
+  <.modal return_to={Routes.my_expressions_index_path(@socket, :index)}>
     <.live_component
       module={VisionsUniteWeb.ExpressionLive.FormComponent}
       id={@expression.id || :new}

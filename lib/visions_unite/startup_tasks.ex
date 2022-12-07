@@ -11,8 +11,7 @@ defmodule VisionsUnite.StartupTasks do
         })
 
       _ ->
-        IO.puts "Superadmin already exists."
+        IO.puts("Superadmin already exists.")
     end
   end
 end
-

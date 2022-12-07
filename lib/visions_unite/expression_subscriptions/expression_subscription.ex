@@ -21,4 +21,3 @@ defmodule VisionsUnite.ExpressionSubscriptions.ExpressionSubscription do
     |> unique_constraint(:unique_subscription, name: :unique_subscription)
   end
 end
-

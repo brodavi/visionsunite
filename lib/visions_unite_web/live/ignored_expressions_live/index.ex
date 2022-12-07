@@ -1,7 +1,6 @@
 defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
   use VisionsUniteWeb, :live_view
 
-  alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.ExpressionSubscriptions
@@ -18,13 +17,13 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
 
     user_id = session["current_user_id"]
 
-    ignored_expressions =
-      list_ignored_expressions(user_id)
+    ignored_expressions = list_ignored_expressions(user_id)
 
     socket =
       socket
       |> assign(:current_user_id, user_id)
       |> assign(:ignored_expressions, ignored_expressions)
+
     {:ok, socket}
   end
 
@@ -50,7 +49,10 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
     user_id = socket.assigns.current_user_id
 
     existing_subscription =
-      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(expression_id, user_id)
+      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(
+        expression_id,
+        user_id
+      )
 
     case existing_subscription do
       nil ->
@@ -59,6 +61,7 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
           user_id: user_id,
           subscribe: true
         })
+
       _ ->
         existing_subscription
         |> ExpressionSubscriptions.update_expression_subscription(%{
@@ -66,13 +69,13 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
         })
     end
 
-    ignored_expressions =
-      list_ignored_expressions(user_id)
+    ignored_expressions = list_ignored_expressions(user_id)
 
     socket =
       socket
       |> put_flash(:info, "Successfully subscribed to expression. Thank you!")
       |> assign(:ignored_expressions, ignored_expressions)
+
     {:noreply, socket}
   end
 
@@ -83,4 +86,3 @@ defmodule VisionsUniteWeb.IgnoredExpressionsLive.Index do
     |> Expression.annotate_with_fully_supporteds(user_id)
   end
 end
-
