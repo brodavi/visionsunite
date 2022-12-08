@@ -1,4 +1,4 @@
-<NavComponent.nav active={@live_action} version={@version} />
+<NavComponent.nav active={@live_action} />
 
 <br>
 
@@ -7,25 +7,12 @@
     <h3>Expressions I have Ignored</h3>
 
     <div id="ignored-expressions">
-      <%= if @version == "v3" do %>
-        <%= for expression <- @ignored_expressions do %>
-          <div id={"supported-expression-#{expression.id}"} class="roww">
-            <div>
-              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} v3={true} />
-            </div>
+      <%= for expression <- @ignored_expressions do %>
+        <div id={"supported-expression-#{expression.id}"} class="roww">
+          <div>
+            <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
           </div>
-        <% end %>
-      <% else %>
-        <%= for expression <- @ignored_expressions do %>
-          <div id={"supported-expression-#{expression.id}"} class="roww">
-            <div>
-              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
-            </div>
-            <div>
-              <button class="small" phx-click="subscribe" phx-value-expression_id={expression.id}>Join Conversation</button>
-            </div>
-          </div>
-        <% end %>
+        </div>
       <% end %>
     </div>
 

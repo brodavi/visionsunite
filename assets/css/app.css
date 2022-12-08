@@ -79,6 +79,10 @@ textarea {
   color: #eeeeee;
 }
 
+button > a {
+  color: #eeeeee;
+}
+
 button.small {
   line-height: 0.66rem;
   height: 2rem;

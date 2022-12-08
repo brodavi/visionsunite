@@ -1,3 +1,18 @@
+<%= if @live_action in [:new] do %>
+  <.modal return_to={Routes.my_expressions_index_path(@socket, :index)}>
+    <.live_component
+      module={VisionsUniteWeb.ExpressionLive.FormComponent}
+      id={@expression.id || :new}
+      title={@page_title}
+      action={@live_action}
+      expression={@new_expression}
+      linked_expression_id={@linked_expression_id}
+      linked_expression_title={@linked_expression_title}
+      current_user_id={@current_user_id}
+      return_to={Routes.my_expressions_index_path(@socket, :index)}
+    />
+  </.modal>
+<% end %>
 
 <%= if is_list(@expression.fully_supporteds) and Enum.count(@expression.fully_supporteds) !== 0 do %>
   <h1>
@@ -16,6 +31,14 @@
   <% end %>
 <% end %>
 
+<%= if Enum.count(@fully_supporteds) !== 0 do %>
+  <small>
+    <b>
+      <%= "(this expression has been fully supported by a sortition of the group: #{if !is_nil(List.first(@fully_supporteds).group_id) do VisionsUnite.Expressions.get_expression_title(List.first(@fully_supporteds).group_id) else "all" end})" %>
+    </b>
+  </small>
+<% end %>
+
 <p>
   <%= @expression.body %>
 </p>
@@ -29,18 +52,16 @@
     <% end %>
 
     <%= if @expression.subscribed do %>
-      <button class="small" phx-click="unsubscribe" phx-value-expression_id={@expression.id}>Leave Conversation</button>
-    <% else %>
-      <button class="small" disabled>Leave Conversation</button>
-    <% end %>
-
-    <%= if @expression.subscribed do %>
       <button class="small" phx-click="ignore" phx-value-expression_id={@expression.id}>Ignore</button>
     <% else %>
       <button class="small" disabled>Ignore</button>
     <% end %>
 
-    <button class="small" phx-click="create_linked_expression" phx-value-expression_id={@expression.id}>Created a Linked Expression</button>
+    <button class="small">
+      <%= live_patch to: Routes.expression_show_show_path(@socket, :new, @expression.id) do %>
+        Create a Linked Expression
+      <% end %>
+    </button>
   </div>
 <% end %>
 
@@ -115,6 +136,13 @@
   </div>
 <% end %>
 
+<%= if Enum.count(@children) !== 0 do %>
+  <h3>Expressions linked to this one:</h3>
+  <%= for child <- @children do %>
+    <ExpressionComponent.expression expression={child} current_user_id={@current_user_id} />
+  <% end %>
+<% end %>
+
 <%= if true or @current_user.super_admin do %>
   <h2>___---=== DEBUG INFO ===---___</h2>
   <h4>supports</h4>
@@ -159,5 +187,5 @@
   </div>
 <% end %>
 
-<NavComponent.nav active={nil} version={"v3"} />
+<NavComponent.nav active={nil} />
 

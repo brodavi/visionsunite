@@ -1,6 +1,6 @@
-<NavComponent.nav active={@live_action} version={@version} />
+<NavComponent.nav active={@live_action} />
 
-<%= if @live_action in [:new, :edit] do %>
+<%= if @live_action in [:new] do %>
   <.modal return_to={Routes.my_expressions_index_path(@socket, :index)}>
     <.live_component
       module={VisionsUniteWeb.ExpressionLive.FormComponent}
@@ -8,8 +8,6 @@
       title={@page_title}
       action={@live_action}
       expression={@expression}
-      my_subscriptions={@my_subscriptions}
-      my_expressions={@my_expressions}
       current_user_id={@current_user_id}
       return_to={Routes.my_expressions_index_path(@socket, :index)}
     />
@@ -19,7 +17,7 @@
 <br>
 
 <%= live_patch to: Routes.my_expressions_index_path(@socket, :new) do %>
-  <button>Create New Expression</button>
+  <button>Create New "Root" Expression (warning! this will need to pass a sortition pulled from the entire user base!)</button>
 <% end %>
 
 <br>
@@ -28,25 +26,12 @@
   <section>
     <h3>My Expressions</h3>
     <div id="my-expressions">
-      <%= if @version == "v3" do %>
-        <%= for expression <- @my_expressions do %>
-          <div id={"my-expression-#{expression.id}"} class="roww">
-            <div>
-              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} v3={true} />
-            </div>
+      <%= for expression <- @my_expressions do %>
+        <div id={"my-expression-#{expression.id}"} class="roww">
+          <div>
+            <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
           </div>
-        <% end %>
-      <% else %>
-        <%= for expression <- @my_expressions do %>
-          <div id={"my-expression-#{expression.id}"} class="roww">
-            <div>
-              <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
-            </div>
-            <div>
-              <button class="small" phx-click="ignore" phx-value-expression_id={expression.id}>Ignore</button>
-            </div>
-          </div>
-        <% end %>
+        </div>
       <% end %>
     </div>
   </section>

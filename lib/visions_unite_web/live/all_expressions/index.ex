@@ -17,7 +17,7 @@ defmodule VisionsUniteWeb.AllExpressionsLive.Index do
 
     user_id = session["current_user_id"]
 
-    all_expressions = list_all_expressions()
+    all_expressions = list_all_expressions(user_id)
 
     socket =
       socket
@@ -35,13 +35,6 @@ defmodule VisionsUniteWeb.AllExpressionsLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing ALL Expressions")
-    |> assign(:version, "v2")
-  end
-
-  defp apply_action(socket, :index_v3, _params) do
-    socket
-    |> assign(:page_title, "Listing ALL Expressions")
-    |> assign(:version, "v3")
   end
 
   @impl true
@@ -71,7 +64,7 @@ defmodule VisionsUniteWeb.AllExpressionsLive.Index do
         )
     end
 
-    all_expressions = list_all_expressions()
+    all_expressions = list_all_expressions(user_id)
 
     socket =
       socket
@@ -115,7 +108,7 @@ defmodule VisionsUniteWeb.AllExpressionsLive.Index do
         )
     end
 
-    all_expressions = list_all_expressions()
+    all_expressions = list_all_expressions(user_id)
 
     socket =
       socket
@@ -125,9 +118,11 @@ defmodule VisionsUniteWeb.AllExpressionsLive.Index do
     {:noreply, socket}
   end
 
-  defp list_all_expressions() do
+  defp list_all_expressions(user_id) do
     Expressions.list_expressions()
     |> Expression.annotate_with_group_data()
     |> Expression.annotate_with_linked_expressions()
+    |> Expression.annotate_with_fully_supporteds(user_id)
   end
 end
+

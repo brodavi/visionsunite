@@ -39,13 +39,6 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Expressions Seeking My Support")
-    |> assign(:version, "v2")
-  end
-
-  defp apply_action(socket, :index_v3, _params) do
-    socket
-    |> assign(:page_title, "Listing Expressions Seeking My Support")
-    |> assign(:version, "v3")
   end
 
   @impl true
@@ -125,3 +118,4 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
     |> Enum.group_by(& &1.group)
   end
 end
+

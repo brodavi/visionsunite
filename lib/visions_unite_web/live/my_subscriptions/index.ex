@@ -39,13 +39,6 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "My Subscriptions")
-    |> assign(:version, "v2")
-  end
-
-  defp apply_action(socket, :index_v3, _params) do
-    socket
-    |> assign(:page_title, "My Subscriptions")
-    |> assign(:version, "v3")
   end
 
   @impl true
@@ -94,3 +87,4 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
     end)
   end
 end
+

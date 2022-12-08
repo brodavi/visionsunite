@@ -1,4 +1,4 @@
-<NavComponent.nav active={@live_action} version={@version} />
+<NavComponent.nav active={@live_action} />
 
 <br>
 
@@ -6,76 +6,20 @@
   <section>
     <h3>Expressions Seeking Your Support</h3>
       <div id="expressions-seeking-support">
+        <%= for {grouping, expressions} <- @fully_supported_groupings do %>
+          <details>
+            <summary><%= grouping.title %> <span><%= Enum.count(expressions) %></span></summary>
 
-        <%= if @version == "v3" do %>
-          <%= for {grouping, expressions} <- @fully_supported_groupings do %>
-            <details>
-              <summary><%= grouping.title %> <span><%= Enum.count(expressions) %></span></summary>
-
-              <%= for expression <- expressions do %>
-                <div id={"seeking-support-v2-#{expression.expression.id}-#{grouping.id }"} class="revealed roww">
-                  <div>
-                    <ExpressionComponent.expression expression={expression.expression} current_user_id={@current_user_id} group={grouping.title} v3={true} />
-                  </div>
-
+            <%= for expression <- expressions do %>
+              <div id={"seeking-support-#{expression.expression.id}-#{grouping.id }"} class="revealed roww">
+                <div>
+                  <ExpressionComponent.expression expression={expression.expression} current_user_id={@current_user_id} group={grouping.title} />
                 </div>
-              <% end %>
 
-            </details>
-          <% end %>
+              </div>
+            <% end %>
 
-        <% else %>
-          <%= for {grouping, expressions} <- @fully_supported_groupings do %>
-            <details>
-              <summary><%= grouping.title %> <span><%= Enum.count(expressions) %></span></summary>
-
-              <%= for expression <- expressions do %>
-                <div id={"seeking-support-v2-#{expression.expression.id}-#{grouping.id }"} class="revealed roww">
-                  <div>
-                    <ExpressionComponent.expression expression={expression.expression} current_user_id={@current_user_id} group={grouping.title} />
-                  </div>
-
-                  <div class="roww">
-
-                    <.form
-                      let={f}
-                      for={:support_form}
-                      id={"support-form-#{expression.expression.id}-#{grouping.id}"}
-                      phx-submit="my_support"
-                      class="columnn">
-
-                      <%= textarea f, :note, rows: 6, placeholder: "Reasons for why you support (optional)" %>
-                      <%= submit "I support", phx_disable_with: "Saving...", class: "small" %>
-
-                      <%= hidden_input f, :support, value: 1 %>
-                      <%= hidden_input f, :expression_id, value: expression.expression.id %>
-                      <%= hidden_input f, :for_group_id, value: grouping.id %>
-
-                    </.form>
-
-                    <.form
-                      let={f}
-                      for={:support_form}
-                      id={"do_not_support-form-#{expression.expression.id}-#{grouping.id}"}
-                      phx-submit="my_support"
-                      class="columnn">
-
-                      <%= textarea f, :note, rows: 6, placeholder: "Explanation for why I ignore (optional)"%>
-                      <%= submit "Ignore", phx_disable_with: "Saving...", class: "small" %>
-
-                      <%= hidden_input f, :support, value: 0 %>
-                      <%= hidden_input f, :expression_id, value: expression.expression.id %>
-                      <%= hidden_input f, :for_group_id, value: grouping.id %>
-
-                    </.form>
-
-                  </div>
-
-                </div>
-              <% end %>
-
-            </details>
-          <% end %>
+          </details>
         <% end %>
       </div>
   </section>

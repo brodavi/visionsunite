@@ -9,6 +9,7 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
   alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
+  alias VisionsUniteWeb.ExpressionComponent
   alias VisionsUniteWeb.NavComponent
 
   @impl true
@@ -29,6 +30,16 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
   defp apply_action(socket, :show, _params) do
     socket
     |> assign(:page_title, "Showing Expression")
+  end
+
+  defp apply_action(socket, :new, %{"id" => linked_expression_id}) do
+    linked_expression_title = Expressions.get_expression!(linked_expression_id).title
+
+    socket
+    |> assign(:page_title, "Visions Unite - New Expression")
+    |> assign(:new_expression, %Expression{})
+    |> assign(:linked_expression_id, linked_expression_id)
+    |> assign(:linked_expression_title, linked_expression_title)
   end
 
   @impl true
@@ -196,6 +207,10 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
 
     fully_supporteds = FullySupporteds.list_fully_supporteds_for_expression(expression.id)
 
+    children = ExpressionLinkages.list_expression_linkages_for_link(expression.id)
+               |> Enum.map(& Expressions.get_expression!(&1.expression_id))
+               |> Expression.annotate_with_fully_supporteds(user_id)
+
     current_user = Accounts.get_user!(user_id)
 
     socket
@@ -207,5 +222,7 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
     |> assign(:linkages, linkages)
     |> assign(:subscriptions, subscriptions)
     |> assign(:fully_supporteds, fully_supporteds)
+    |> assign(:children, children)
   end
 end
+

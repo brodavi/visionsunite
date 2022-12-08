@@ -83,25 +83,16 @@ defmodule VisionsUniteWeb.Router do
     put "/users/settings", UserSettingsController, :update
     get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
 
-    live "/v1/expressions", ExpressionLive.Index, :index
-    live "/v1/expressions/new", ExpressionLive.Index, :new
-
-    live "/v2/expressions", ExpressionsSeekingMySupportLive.Index, :index
-    live "/v2/expressions/new", MyExpressionsLive.Index, :new
-    live "/v2/expressions_seeking_my_support", ExpressionsSeekingMySupportLive.Index, :index
-    live "/v2/fully_supported_expressions", FullySupportedExpressionsLive.Index, :index
-    live "/v2/ignored_expressions", IgnoredExpressionsLive.Index, :index
-    live "/v2/my_subscriptions", MySubscriptionsLive.Index, :index
-    live "/v2/my_expressions", MyExpressionsLive.Index, :index
-
-    live "/v3/expressions", ExpressionsSeekingMySupportLive.Index, :index_v3
-    live "/v3/expression/:id", ExpressionShowLive.Show, :show
-    live "/v3/expressions_seeking_my_support", ExpressionsSeekingMySupportLive.Index, :index_v3
-    live "/v3/fully_supported_expressions", FullySupportedExpressionsLive.Index, :index_v3
-    live "/v3/ignored_expressions", IgnoredExpressionsLive.Index, :index_v3
-    live "/v3/my_subscriptions", MySubscriptionsLive.Index, :index_v3
-    live "/v3/my_expressions", MyExpressionsLive.Index, :index_v3
-    live "/v3/all_expressions", AllExpressionsLive.Index, :index_v3
+    live "/expressions", ExpressionsSeekingMySupportLive.Index, :index
+    live "/expression/:id", ExpressionShowLive.Show, :show
+    live "/expression/:id/new", ExpressionShowLive.Show, :new
+    live "/expressions_seeking_my_support", ExpressionsSeekingMySupportLive.Index, :index
+    live "/fully_supported_expressions", FullySupportedExpressionsLive.Index, :index
+    live "/ignored_expressions", IgnoredExpressionsLive.Index, :index
+    live "/my_subscriptions", MySubscriptionsLive.Index, :index
+    live "/my_expressions", MyExpressionsLive.Index, :index
+    live "/my_expressions/new", MyExpressionsLive.Index, :new
+    live "/all_expressions", AllExpressionsLive.Index, :index
   end
 
   scope "/", VisionsUniteWeb do
@@ -114,3 +105,4 @@ defmodule VisionsUniteWeb.Router do
     post "/users/confirm/:token", UserConfirmationController, :update
   end
 end
+

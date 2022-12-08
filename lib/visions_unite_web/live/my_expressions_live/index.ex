@@ -44,19 +44,13 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing My Expressions")
-    |> assign(:version, "v2")
-  end
-
-  defp apply_action(socket, :index_v3, _params) do
-    socket
-    |> assign(:page_title, "Listing My Expressions")
-    |> assign(:version, "v3")
   end
 
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "Visions Unite - New Expression")
-    |> assign(:expression, %Expression{linked_expressions: []})
+    |> assign(:expression, %Expression{})
+    |> assign(:linked_expression_id, nil)
   end
 
   #
@@ -132,3 +126,4 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
     end)
   end
 end
+
