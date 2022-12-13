@@ -42,6 +42,7 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Fully Supported Expressions")
+    |> assign(:live_action, :fully_supported)
   end
 
   @impl true

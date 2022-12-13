@@ -35,6 +35,7 @@ defmodule VisionsUniteWeb.AllExpressionsLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing ALL Expressions")
+    |> assign(:live_action, :all_expressions)
   end
 
   @impl true

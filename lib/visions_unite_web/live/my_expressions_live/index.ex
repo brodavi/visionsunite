@@ -44,6 +44,7 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing My Expressions")
+    |> assign(:live_action, :my_expressions)
   end
 
   defp apply_action(socket, :new, _params) do

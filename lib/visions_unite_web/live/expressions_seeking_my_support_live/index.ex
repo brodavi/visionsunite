@@ -39,6 +39,7 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Expressions Seeking My Support")
+    |> assign(:live_action, :seeking_support)
   end
 
   @impl true

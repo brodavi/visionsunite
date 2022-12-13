@@ -139,52 +139,64 @@
 <%= if Enum.count(@children) !== 0 do %>
   <h3>Expressions linked to this one:</h3>
   <%= for child <- @children do %>
-    <ExpressionComponent.expression expression={child} current_user_id={@current_user_id} />
+    <div class="boxed">
+      <ExpressionComponent.expression expression={child} current_user_id={@current_user_id} />
+      <%= child.body %>
+    </div>
   <% end %>
 <% end %>
 
 <%= if true or @current_user.super_admin do %>
-  <h2>___---=== DEBUG INFO ===---___</h2>
-  <h4>supports</h4>
-  <div>
-    <ul>
-      <%= for support <- @supports do %>
-        <li><%= "#{VisionsUnite.Accounts.get_user!(support.user_id).email}, #{support.support}, \"#{support.note}\"" %></li>
-      <% end %>
-    </ul>
-  </div>
-  <h4>sortition</h4>
-  <div>
-    <ul>
-      <%= for seeking_support <- @seeking_supports do %>
-        <li><%= "Seeking support from: #{VisionsUnite.Accounts.get_user!(seeking_support.user_id).email} for group: #{if !is_nil(seeking_support.for_group_id) do VisionsUnite.Expressions.get_expression_title(seeking_support.for_group_id) else "all" end}" %></li>
-      <% end %>
-    </ul>
-  </div>
-  <h4>linkages</h4>
-  <div>
-    <ul>
-      <%= for link <- @linkages do %>
-        <li><%= "#{VisionsUnite.Expressions.get_expression_title(link.link_id)}" %></li>
-      <% end %>
-    </ul>
-  </div>
-  <h4>subscriptions</h4>
-  <div>
-    <ul>
-      <%= for subscription <- @subscriptions do %>
-        <li><%= "#{VisionsUnite.Accounts.get_user!(subscription.user_id).email} is subscribed?: #{subscription.subscribe}" %></li>
-      <% end %>
-    </ul>
-  </div>
-  <h4>fully supporteds</h4>
-  <div>
-    <ul>
-      <%= for fully_supported <- @fully_supporteds do %>
-        <li><%= "Fully supported for the group: #{if !is_nil(fully_supported.group_id) do VisionsUnite.Expressions.get_expression_title(fully_supported.group_id) else "all" end}" %></li>
-      <% end %>
-    </ul>
-  </div>
+  <small>
+    <details>
+      <hr>
+      <summary>
+        <p class="centered">_________---------========= DEBUG INFO =========---------_________</p>
+      </summary>
+      <hr>
+
+      <h4>supports</h4>
+      <div>
+        <ul>
+          <%= for support <- @supports do %>
+            <li><%= "#{VisionsUnite.Accounts.get_user!(support.user_id).email}, #{support.support}, \"#{support.note}\"" %></li>
+          <% end %>
+        </ul>
+      </div>
+      <h4>sortition</h4>
+      <div>
+        <ul>
+          <%= for seeking_support <- @seeking_supports do %>
+            <li><%= "Seeking support from: #{VisionsUnite.Accounts.get_user!(seeking_support.user_id).email} for group: #{if !is_nil(seeking_support.for_group_id) do VisionsUnite.Expressions.get_expression_title(seeking_support.for_group_id) else "all" end}" %></li>
+          <% end %>
+        </ul>
+      </div>
+      <h4>linkages</h4>
+      <div>
+        <ul>
+          <%= for link <- @linkages do %>
+            <li><%= "#{VisionsUnite.Expressions.get_expression_title(link.link_id)}" %></li>
+          <% end %>
+        </ul>
+      </div>
+      <h4>subscriptions</h4>
+      <div>
+        <ul>
+          <%= for subscription <- @subscriptions do %>
+            <li><%= "#{VisionsUnite.Accounts.get_user!(subscription.user_id).email} is subscribed?: #{subscription.subscribe}" %></li>
+          <% end %>
+        </ul>
+      </div>
+      <h4>fully supporteds</h4>
+      <div>
+        <ul>
+          <%= for fully_supported <- @fully_supporteds do %>
+            <li><%= "Fully supported for the group: #{if !is_nil(fully_supported.group_id) do VisionsUnite.Expressions.get_expression_title(fully_supported.group_id) else "all" end}" %></li>
+          <% end %>
+        </ul>
+      </div>
+    </details>
+  </small>
 <% end %>
 
 <NavComponent.nav active={nil} />

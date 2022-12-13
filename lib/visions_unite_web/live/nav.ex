@@ -10,21 +10,21 @@ defmodule VisionsUniteWeb.NavComponent do
     ~H"""
     <nav>
       <%= if @active == :seeking_support do %>
-        <a href="#" class="active">Seeking Support</a>
+        <a href="#" class="active">Seeking Your Support</a>
       <% else %>
-        <%= link "Seeking Support", to: "/expressions_seeking_my_support" %>
+        <%= link "Seeking Your Support", to: "/expressions_seeking_my_support" %>
       <% end %>
 
       <%= if @active == :fully_supported do %>
-        <a href="#" class="active">Fully Supported</a>
+        <a href="#" class="active">Fully Supported for You</a>
       <% else %>
-        <%= link "Fully Supported", to: "/fully_supported_expressions" %>
+        <%= link "Fully Supported for You", to: "/fully_supported_expressions" %>
       <% end %>
 
       <%= if @active == :my_subscriptions do %>
-        <a href="#" class="active">Expressions I have Joined</a>
+        <a href="#" class="active">My Conversations</a>
       <% else %>
-        <%= link "Expressions I have Joined", to: "/my_subscriptions" %>
+        <%= link "My Conversations", to: "/my_subscriptions" %>
       <% end %>
 
       <%= if @active == :my_expressions do %>
@@ -34,9 +34,9 @@ defmodule VisionsUniteWeb.NavComponent do
       <% end %>
 
       <%= if @active == :ignored_expressions do %>
-        <a href="#" class="active">Ignored</a>
+        <a href="#" class="active">Muted</a>
       <% else %>
-        <%= link "Ignored", to: "/ignored_expressions" %>
+        <%= link "Muted", to: "/ignored_expressions" %>
       <% end %>
 
       <%= if @active == :all_expressions do %>
