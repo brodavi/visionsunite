@@ -1,0 +1,63 @@
+<section>
+
+  <h1>Welcome to Visions Unite!</h1>
+
+  <h2>Everybody's Voices, Nobody's Noise</h2>
+
+  <h3>When Conversation Can Scale, Visions Unite</h3>
+
+  <p>
+    Some people who care about making their community better in some particular way find one another. They keep the conversation going. They start something. Supporters find them. Great things happen. The most progress is made when the conversation involves many people, when supporters become participants become leaders— when a movement forms. Visions Unite seeks to provide a neutral infrastructure for conversations and coordination to extend to many more people, as equals, than it traditionally has. The future of democracy, of liberty, and of justice relies in part on mass communication becoming horizontal, all-way, not one-way.
+  </p>
+
+  <p>
+    Where people seeking to make the world more whole can share ideas and information and gather the commitment and resources to build power to be the change we need.
+  </p>
+
+  <p>
+    Visions Unite is a project of <a href="https://visionsunite.org/people-who-give-a-damn-inc">People Who Give a Damn, Inc.,</a> a not-for-profit organization.
+  </p>
+
+  <hr>
+
+  <p>
+    The Visions Unite platform uses <a href="https://en.wikipedia.org/wiki/Sortition">Sortition</a> as a tool for finding quality information and ideas. When a message is posted, a sortition of the group's members is selected at random to determine whether or not the message is worthy of being shown to the rest of the group. The algorithm for determining the sortition is as follows:
+    <pre>
+      <code>
+      c = Confidence Level = 95%
+      p = Population Proportion = 0.5 (most conservative)
+      e = Margin of Error aka Confidence Interval = 0.05 (5%)
+      pop = Population Size = 2500
+      
+      a_div_2 = Alpha divided by 2 = (1-c)/2 = 0.025
+      z = Z-Score = norm.s.inv(1-a_div_2) = 1.9603949169253396
+      # note: this is the inverse of the CDF of the standard normal distribution.
+      
+      numerator = (z^2) * (p*(1-p))/(e^2) = 384.3148230306708
+      denominator = 1 + (z^2) * (p*(1-p))/(e^2*pop) = 1.1537259292122684
+      Sample Size (rounded) = numerator/denominator = 333
+      </code>
+    </pre>
+  </p>
+
+  <p>Demo of sortition calculation:</p>
+
+  <%= form_for @changeset, Routes.page_path(@conn, :index), fn f -> %>
+    <label>
+      Group size: <%= number_input f, :group_size, value: @group_size %>
+    </label>
+
+    <%= submit "Save" %>
+  <% end %>
+
+  <h3><b>Sortition Size: <%= @sortition_size %></b></h3>
+
+  <br>
+  <br>
+
+  <i>
+    © 2006–2022 <a href="https://visionsunite.org/people-who-give-a-damn-inc">People Who Give a Damn, Inc.</a> under a <a href="http://creativecommons.org/licenses/by/3.0/deed.en_US">Creative Commons Attribution 3.0 Unported License</a> unless otherwise noted.
+  </i>
+
+</section>
+

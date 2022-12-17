@@ -5,6 +5,8 @@ defmodule VisionsUnite.SeekingSupports do
 
   import Ecto.Query, warn: false
 
+  alias Statistics.Distributions.Normal
+
   alias VisionsUnite.Repo
 
   alias VisionsUnite.Accounts
@@ -261,21 +263,23 @@ defmodule VisionsUnite.SeekingSupports do
 
   def calculate_sortition_size(group_count) do
     ## Calculating Sample Size with Finite Population from https://www.youtube.com/watch?v=gLD4tENS82c
-    ## c = Confidence Level = 95%
-    ## p = Population Proportion = 0.5 (most conservative)
-    ## e = Margin of Error aka Confidence Interval = 0.04 (4%)
-    ## pop = Population Size = 2500
-    ## 
-    ## a_div_2 = Alpha divided by 2 = (1-c)/2 = 0.025
-    ## z = Z-Score = norm.s.inv(1-a_div_2) = 1.96
-    ## 
-    ## numerator = (z^2) * (p*(1-p))/(e^2) = 600.23
-    ## denominator = 1 + (z^2) * (p*(1-p))/(e^2*pop) = 1.24
-    ## Sample Size = numerator/denominator = 484
     ##
+    ##  c = Confidence Level = 95%
+    ##  p = Population Proportion = 0.5 (most conservative)
+    ##  e = Margin of Error aka Confidence Interval = 0.05 (5%)
+    ##  pop = Population Size = 2500
+    ##
+    ##  a_div_2 = Alpha divided by 2 = (1-c)/2 = 0.025
+    ##  z = Z-Score = norm.s.inv(1-a_div_2) = 1.9603949169253396
+    ##  # note: this is the inverse of the CDF of the standard normal distribution.
+    ##
+    ##  numerator = (z^2) * (p*(1-p))/(e^2) = 384.3148230306708
+    ##  denominator = 1 + (z^2) * (p*(1-p))/(e^2*pop) = 1.1537259292122684
+    ##  Sample Size (rounded) = numerator/denominator = 333
 
-    p = 0.5
-    e = 0.04
+    c = String.to_float(System.get_env("CONFIDENCE_LEVEL"))
+    p = String.to_float(System.get_env("POPULATION_PROPORTION"))
+    e = String.to_float(System.get_env("CONFIDENCE_INTERVAL"))
 
     pop =
       if group_count == %{} do
@@ -284,8 +288,9 @@ defmodule VisionsUnite.SeekingSupports do
         group_count
       end
 
-    # For 95% confidence level
-    z = 1.96
+    a_div_2 = (1 - c) / 2
+
+    z = Normal.ppf().(1 - a_div_2)
 
     numerator = Float.pow(z, 2) * (p * (1 - p)) / Float.pow(e, 2)
 

@@ -10,3 +10,18 @@ The purpose of the software is giving people in large, growing, dynamic groups t
 # Get all users inthe system
 VisionsUnite.Accounts.list_users()
 ```
+
+```elixir
+# Show the supports for the first expression in the system
+VisionsUnite.Supports.list_supports_for_expression(%{id: 1})
+```
+
+```elixir
+# Show the fully_supporteds for the first expression in the system
+VisionsUnite.FullySupporteds.list_fully_supporteds_for_expression(1)
+```
+
+```elixir
+# Test the Sample Size with Finite Population calculation
+VisionsUnite.SeekingSupports.calculate_sortition_size(2500)
+```

@@ -25,6 +25,8 @@ defmodule VisionsUniteWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/about", PageController, :about
+    post "/about", PageController, :update_about
   end
 
   # Other scopes may use custom stacks.
