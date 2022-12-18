@@ -88,4 +88,3 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
     end)
   end
 end
-

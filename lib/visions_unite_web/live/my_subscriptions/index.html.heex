@@ -1,10 +1,10 @@
-<NavComponent.nav active={@live_action} />
+<NavComponent.nav active={@live_action} current_user_id={@current_user_id} />
 
 <br>
 
 <%= if Enum.count(@my_subscriptions) != 0 do %>
   <section>
-    <h3>My Subscriptions</h3>
+    <h3>My Conversations</h3>
     <div id="my-subscriptions">
       <%= for expression <- @my_subscriptions do %>
         <div id={"my-subscription-#{expression.id}"} class="roww">

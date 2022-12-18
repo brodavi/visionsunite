@@ -126,4 +126,3 @@ defmodule VisionsUniteWeb.AllExpressionsLive.Index do
     |> Expression.annotate_with_fully_supporteds(user_id)
   end
 end
-

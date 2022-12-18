@@ -9,6 +9,7 @@ defmodule VisionsUnite.Expressions do
 
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.ExpressionLinkages
+  alias VisionsUnite.ExpressionLinkages.ExpressionLinkage
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.SeekingSupports.SeekingSupport
   alias VisionsUnite.FullySupporteds.FullySupported
@@ -27,6 +28,50 @@ defmodule VisionsUnite.Expressions do
   def preload_links(expr) do
     expr
     |> Repo.preload(:linked_expressions)
+  end
+
+  @doc """
+  Returns the list of vetted groups (aka "vetted top-level expressions")
+
+  ## Examples
+
+      iex> list_vetted_groups()
+      [%Expression{}, ...]
+
+  """
+  def list_vetted_groups do
+    expression_linkage_ids =
+      ExpressionLinkages.list_expression_linkages()
+      |> Enum.map(& &1.expression_id)
+
+    query =
+      from e in Expression,
+        join: fs in FullySupported,
+        on: fs.expression_id == e.id,
+        where: e.id not in ^expression_linkage_ids
+
+    Repo.all(query)
+  end
+
+  @doc """
+  Returns the list of groups ("aka top-level expressions")
+
+  ## Examples
+
+      iex> list_groups()
+      [%Expression{}, ...]
+
+  """
+  def list_groups do
+    expression_linkage_ids =
+      ExpressionLinkages.list_expression_linkages()
+      |> Enum.map(& &1.expression_id)
+
+    query =
+      from e in Expression,
+        where: e.id not in ^expression_linkage_ids
+
+    Repo.all(query)
   end
 
   @doc """
@@ -51,6 +96,8 @@ defmodule VisionsUnite.Expressions do
       [%Expression{}, ...]
 
   """
+  def list_ignored_expressions(nil), do: []
+
   def list_ignored_expressions(user_id) do
     ignored_query =
       from e in Expression,
@@ -70,6 +117,8 @@ defmodule VisionsUnite.Expressions do
       [%Expression{}, ...]
 
   """
+  def list_fully_supported_expressions(nil), do: []
+
   def list_fully_supported_expressions(user_id) do
     group_ids =
       ExpressionSubscriptions.list_expression_subscriptions_for_user(user_id)
@@ -107,11 +156,9 @@ defmodule VisionsUnite.Expressions do
       [%Expression{}, ...]
 
   """
+  def list_expressions_authored_by_user(nil), do: []
+
   def list_expressions_authored_by_user(user_id) do
-    # TODO this will, as advertised, return expressions authored by user
-    # NOTE this will return even expressions that the author has ignored
-    # SO! You should have another list in live.ex... "ignored expressions"
-    # ... then you can let the liveview handle the de-duping
     query =
       from e in Expression,
         where: e.author_id == ^user_id
@@ -147,6 +194,8 @@ defmodule VisionsUnite.Expressions do
       [%Expression{}, ...]
 
   """
+  def list_subscribed_expressions_for_user(nil), do: []
+
   def list_subscribed_expressions_for_user(user_id) do
     query =
       from e in Expression,

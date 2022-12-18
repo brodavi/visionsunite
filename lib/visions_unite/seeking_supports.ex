@@ -50,6 +50,8 @@ defmodule VisionsUnite.SeekingSupports do
       [3, 25, ...]
 
   """
+  def list_support_sought_for_user(nil), do: []
+
   def list_support_sought_for_user(user_id) do
     query =
       from ss in SeekingSupport,

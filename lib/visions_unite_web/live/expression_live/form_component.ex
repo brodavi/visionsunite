@@ -39,4 +39,3 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
     end
   end
 end
-

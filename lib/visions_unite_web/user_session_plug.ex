@@ -9,7 +9,7 @@ defmodule VisionsUniteWeb.UserSessionPlug do
       conn
       |> put_session(:current_user_id, conn.assigns.current_user.id)
     else
-      redirect(conn, to: "/")
+      conn
     end
   end
 end

@@ -25,6 +25,7 @@ defmodule VisionsUniteWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+
     get "/about", PageController, :about
     post "/about", PageController, :update_about
   end
@@ -85,8 +86,6 @@ defmodule VisionsUniteWeb.Router do
     put "/users/settings", UserSettingsController, :update
     get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
 
-    live "/expressions", ExpressionsSeekingMySupportLive.Index, :index
-    live "/expression/:id", ExpressionShowLive.Show, :show
     live "/expression/:id/new", ExpressionShowLive.Show, :new
     live "/expressions_seeking_my_support", ExpressionsSeekingMySupportLive.Index, :index
     live "/fully_supported_expressions", FullySupportedExpressionsLive.Index, :index
@@ -98,13 +97,15 @@ defmodule VisionsUniteWeb.Router do
   end
 
   scope "/", VisionsUniteWeb do
-    pipe_through [:browser]
+    pipe_through [:browser, :user_session]
 
     delete "/users/log_out", UserSessionController, :delete
     get "/users/confirm", UserConfirmationController, :new
     post "/users/confirm", UserConfirmationController, :create
     get "/users/confirm/:token", UserConfirmationController, :edit
     post "/users/confirm/:token", UserConfirmationController, :update
+
+    live "/expressions", ExpressionsSeekingMySupportLive.Index, :index
+    live "/expression/:id", ExpressionShowLive.Show, :show
   end
 end
-

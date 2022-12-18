@@ -1,10 +1,10 @@
-<NavComponent.nav active={@live_action} />
+<NavComponent.nav active={@live_action} current_user_id={@current_user_id} />
 
 <br>
 
 <%= if Enum.count(@ignored_expressions) != 0 do %>
   <section>
-    <h3>Expressions I have Ignored</h3>
+    <h3>Expressions I have Muted</h3>
 
     <div id="ignored-expressions">
       <%= for expression <- @ignored_expressions do %>

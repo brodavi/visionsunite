@@ -1,4 +1,4 @@
-<NavComponent.nav active={@live_action} />
+<NavComponent.nav active={@live_action} current_user_id={@current_user_id} />
 
 <%= if @live_action in [:new] do %>
   <.modal return_to={Routes.my_expressions_index_path(@socket, :index)}>

@@ -9,6 +9,7 @@ defmodule VisionsUnite.ExpressionLinkages do
 
   alias VisionsUnite.ExpressionLinkages.ExpressionLinkage
   alias VisionsUnite.ExpressionSubscriptions
+  alias VisionsUnite.FullySupporteds.FullySupported
 
   @doc """
   Returns the list of expression_linkages.
@@ -49,6 +50,14 @@ defmodule VisionsUnite.ExpressionLinkages do
       [%Expression{}, ...]
 
   """
+  def list_parents_for_expression_and_user(expression_id, nil) do
+    query =
+      from el in ExpressionLinkage,
+        where: el.expression_id == ^expression_id
+
+    Repo.all(query)
+  end
+
   def list_parents_for_expression_and_user(expression_id, user_id) do
     group_ids =
       ExpressionSubscriptions.list_expression_subscriptions_for_user(user_id)
@@ -75,6 +84,8 @@ defmodule VisionsUnite.ExpressionLinkages do
   def list_expression_linkages_for_link(link_id) do
     query =
       from ep in ExpressionLinkage,
+        join: fs in FullySupported,
+        on: fs.expression_id == ep.expression_id,
         where: ep.link_id == ^link_id
 
     Repo.all(query)

@@ -152,6 +152,9 @@ defmodule VisionsUnite.ExpressionSubscriptions do
       %ExpressionSubscription{}
 
   """
+  def get_expression_subscription_for_expression_and_user(expression_id, nil),
+    do: %{subscribe: false}
+
   def get_expression_subscription_for_expression_and_user(expression_id, user_id) do
     query =
       from es in ExpressionSubscription,

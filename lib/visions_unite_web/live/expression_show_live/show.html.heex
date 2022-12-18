@@ -14,37 +14,21 @@
   </.modal>
 <% end %>
 
-<%= if is_list(@expression.fully_supporteds) and Enum.count(@expression.fully_supporteds) !== 0 do %>
+<%= if !is_nil(@expression.parent) do %>
   <h1>
-    / <%= List.first(@expression.fully_supporteds, ", ") %> / <%= @expression.title %>
+    <%= link @expression.parent.title, to: "/expression/#{@expression.parent.id}" %> / <%= @expression.title %>
   </h1>
 <% else %>
-  <% # Else, this expression is seeking support, and could have multiple groups %>
-  <%= if Map.has_key?(assigns, :group) do %>
-
-    <h1>
-      / <%= @group %> / <%= @expression.title %>
-    </h1>
-  <% else %>
-    <h1>
-      / <%= @expression.title %>
-    </h1>
-  <% end %>
-<% end %>
-
-<%= if Enum.count(@fully_supporteds) !== 0 do %>
-  <small>
-    <b>
-      <%= "(this expression has been fully supported by a sortition of the group: #{if !is_nil(List.first(@fully_supporteds).group_id) do VisionsUnite.Expressions.get_expression_title(List.first(@fully_supporteds).group_id) else "all" end})" %>
-    </b>
-  </small>
+  <h1>
+    / <%= @expression.title %>
+  </h1>
 <% end %>
 
 <p>
   <%= @expression.body %>
 </p>
 
-<%= if !@expression.seeking_support_from do %>
+<%= if !@expression.seeking_support_from and @current_user do %>
   <div class="roww">
     <%= if !is_nil(@expression.subscribed) and @expression.subscribed.subscribe do %>
       <button class="small" disabled>Join Conversation</button>
@@ -73,7 +57,6 @@
 <% end %>
 
 <%= if @expression.seeking_support_from do %>
-  <hr>
 
   <div class="roww">
 
@@ -98,9 +81,11 @@
         </details>
       </small>
 
-      <p>
-        NOTE: You are 1 of <%= List.first(@expression.groups).sortition_count %> people to decide if this message should go to all <%= List.first(@expression.groups).subscriber_count %> people in group: <b><%= List.first(@expression.groups).link.title %></b>.
-      </p>
+      <%= if !is_nil(@expression.parent) do %>
+        <p>
+          NOTE: You are 1 of <%= @expression.parent.sortition_count %> people to decide if this message should go to all <%= @expression.parent.subscriber_count %> people in group: <b><%= @expression.parent.title %></b>.
+        </p>
+      <% end %>
 
       <%= hidden_input f, :expression_id, value: @expression.id %>
       <%= hidden_input f, :for_group_id, value: @expression.seeking_support_from.id %>
@@ -109,27 +94,6 @@
 
   </div>
 
-<% end %>
-
-<hr>
-
-<h4>more information</h4>
-
-<%= if is_nil(List.first(@expression.groups).link.id) do %>
-  <div>
-    <p>
-      This expression (<%= @expression.title %>) needs support from <%= List.first(@expression.groups).quorum_count %> out of <%= List.first(@expression.groups).subscriber_count %> (sortition of <%= List.first(@expression.groups).sortition_count %>) of <b>all users</b> to be fully supported as a root expression. Currently <%= List.first(@expression.groups).support_count %> supporting.
-    </p>
-  </div>
-<% else %>
-  <%= for group <- @expression.groups do %>
-    <div>
-      <p>
-        This expression (<%= @expression.title %>) needs support from <%= group.quorum_count %> out of <%= group.subscriber_count %> (sortition of <%= group.sortition_count %>)
-        <code><%= group.link.title %></code> subscribers to be fully supported for the <%= group.link.title %> group. Currently <%= group.support_count %> supporting.
-      </p>
-    </div>
-  <% end %>
 <% end %>
 
 <%= if @expression.author_id == @current_user_id and Map.has_key?(@expression, :supports) and Enum.count(@expression.supports) != 0 do %>
@@ -143,24 +107,20 @@
   </div>
 <% end %>
 
-<%= if Enum.count(@children) !== 0 do %>
-  <h3>Expressions linked to this one:</h3>
-  <%= for child <- @children do %>
-    <div class="boxed">
-      <ExpressionComponent.expression expression={child} current_user_id={@current_user_id} />
-      <%= child.body %>
-    </div>
-  <% end %>
-<% end %>
-
 <%= if true or @current_user.super_admin do %>
   <small>
     <details>
-      <hr>
       <summary>
         <p class="centered">_________---------========= DEBUG INFO =========---------_________</p>
       </summary>
-      <hr>
+
+      <%= if !is_nil(@expression.parent) do %>
+        <div>
+          <p>
+            This expression (<%= @expression.title %>) needs support from <%= @expression.parent.quorum_count %> out of <%= @expression.parent.subscriber_count %> (sortition of <%= @expression.parent.sortition_count %>) of <%= @expression.parent.subscriber_count %> to be fully supported. Currently <%= @expression.parent.support_count %> supporting.
+          </p>
+        </div>
+      <% end %>
 
       <h4>supports</h4>
       <div>
@@ -206,5 +166,13 @@
   </small>
 <% end %>
 
-<NavComponent.nav active={nil} />
+<NavComponent.nav active={nil} current_user_id={@current_user_id} />
 
+<%= if Enum.count(@children) !== 0 do %>
+  <%= for child <- @children do %>
+    <div class="boxed">
+      <ExpressionComponent.expression expression={child} current_user_id={@current_user_id} />
+      <%= child.body %>
+    </div>
+  <% end %>
+<% end %>

@@ -39,49 +39,39 @@ defmodule VisionsUnite.Expressions.Expression do
   end
 
   def annotate_with_group_data(expression) when is_map(expression) do
-    #
-    # TODO this should probably rely on expression.group_count!
-    #      instead of hitting the DB again
-    #
-
     expression =
       expression
       |> Expressions.preload_links()
 
-    linkages_or_root =
-      if Enum.count(expression.expression_linkages) != 0 do
-        expression.expression_linkages
-      else
-        # This is hacky... there has to be a better way
-        [%{link: %{id: nil, title: "all"}}]
-      end
-
-    # annotate with link data
     groups =
-      linkages_or_root
+      expression.expression_linkages
+      |> Enum.map(& &1.link)
       |> Enum.map(fn group ->
-        subscriber_count =
-          ExpressionSubscriptions.count_expression_subscriptions_for_expression(group.link.id)
+        if !is_nil(group) do
+          subscriber_count =
+            ExpressionSubscriptions.count_expression_subscriptions_for_expression(group.id)
 
-        sortition_count = SeekingSupports.calculate_sortition_size(subscriber_count)
-        quorum_count = Kernel.round(sortition_count * 0.51)
-        support_count = Supports.count_support_for_expression_for_group(expression, group.link.id)
+          sortition_count = SeekingSupports.calculate_sortition_size(subscriber_count)
+          quorum_count = Kernel.round(sortition_count * 0.51)
+          support_count = Supports.count_support_for_expression_for_group(expression, group.id)
 
-        Map.merge(
-          group,
-          %{
-            subscriber_count: subscriber_count,
-            sortition_count: sortition_count,
-            quorum_count: quorum_count,
-            support_count: support_count
-          }
-        )
+          Map.merge(
+            group,
+            %{
+              subscriber_count: subscriber_count,
+              sortition_count: sortition_count,
+              quorum_count: quorum_count,
+              support_count: support_count
+            }
+          )
+        else
+          nil
+        end
       end)
 
-    # okay... if expression_linkages is [], then this is a
-    # root expression, and it will not populate with data..
+    parent = List.first(groups)
 
-    Map.merge(expression, %{groups: groups})
+    Map.merge(expression, %{parent: parent})
   end
 
   def annotate_with_linked_expressions(expressions) when is_list(expressions) do
@@ -92,11 +82,6 @@ defmodule VisionsUnite.Expressions.Expression do
   end
 
   def annotate_with_linked_expressions(expression) when is_map(expression) do
-    #
-    # TODO this should probably rely on expression.group_count!
-    #      instead of hitting the DB again
-    #
-
     expression =
       expression
       |> Expressions.preload_links()

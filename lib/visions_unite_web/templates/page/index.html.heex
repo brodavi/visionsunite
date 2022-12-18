@@ -1,6 +1,10 @@
 <section>
   <h1>Welcome to Visions Unite!</h1>
-  <p>
-    This will be a list of groups
-  </p>
+
+  <h2>All Vetted Groups:</h2>
+
+  <%= for group <- @groups do %>
+    <VisionsUniteWeb.ExpressionComponent.expression expression={group} current_user_id={nil} />
+  <% end %>
+
 </section>

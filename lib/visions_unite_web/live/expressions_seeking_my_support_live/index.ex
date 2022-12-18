@@ -119,4 +119,3 @@ defmodule VisionsUniteWeb.ExpressionsSeekingMySupportLive.Index do
     |> Enum.group_by(& &1.group)
   end
 end
-

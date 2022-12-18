@@ -106,6 +106,7 @@ defmodule VisionsUnite.Accounts do
       ** (Ecto.NoResultsError)
 
   """
+  def get_user!(nil), do: nil
   def get_user!(id), do: Repo.get!(User, id)
 
   ## User registration

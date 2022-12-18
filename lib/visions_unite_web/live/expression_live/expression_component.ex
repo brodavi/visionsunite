@@ -35,4 +35,3 @@ defmodule VisionsUniteWeb.ExpressionComponent do
     """
   end
 end
-

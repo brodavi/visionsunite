@@ -164,4 +164,3 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
     end)
   end
 end
-

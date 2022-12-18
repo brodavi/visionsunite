@@ -207,9 +207,10 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
 
     fully_supporteds = FullySupporteds.list_fully_supporteds_for_expression(expression.id)
 
-    children = ExpressionLinkages.list_expression_linkages_for_link(expression.id)
-               |> Enum.map(& Expressions.get_expression!(&1.expression_id))
-               |> Expression.annotate_with_fully_supporteds(user_id)
+    children =
+      ExpressionLinkages.list_expression_linkages_for_link(expression.id)
+      |> Enum.map(&Expressions.get_expression!(&1.expression_id))
+      |> Expression.annotate_with_fully_supporteds(user_id)
 
     current_user = Accounts.get_user!(user_id)
 
@@ -225,4 +226,3 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
     |> assign(:children, children)
   end
 end
-
