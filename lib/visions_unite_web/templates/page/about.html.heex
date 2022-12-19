@@ -42,7 +42,7 @@
 
   <p>Demo of sortition calculation:</p>
 
-  <%= form_for @changeset, Routes.page_path(@conn, :index), fn f -> %>
+  <%= form_for @changeset, Routes.page_path(@conn, :update_about), fn f -> %>
     <label>
       Group size: <%= number_input f, :group_size, value: @group_size %>
     </label>

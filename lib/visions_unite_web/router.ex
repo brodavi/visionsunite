@@ -86,6 +86,12 @@ defmodule VisionsUniteWeb.Router do
     put "/users/settings", UserSettingsController, :update
     get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
 
+    post "/create_expressions", PageController, :create_expression
+    post "/submit_vote", PageController, :submit_vote
+    get "/vote", PageController, :vote
+    post "/save_group", PageController, :save_group
+    post "/save_message", PageController, :save_message
+
     live "/expression/:id/new", ExpressionShowLive.Show, :new
     live "/expressions_seeking_my_support", ExpressionsSeekingMySupportLive.Index, :index
     live "/fully_supported_expressions", FullySupportedExpressionsLive.Index, :index

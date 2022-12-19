@@ -1,0 +1,51 @@
+<%= for expression <- @seeking_supports do %>
+  <div class="boxed">
+    <%= if !is_nil(expression.parent) do %>
+      <h4>Vetting Message: <%= expression.title %></h4>
+
+      <p><%= expression.body %></p>
+    <% else %>
+      <h3><b>VETTING GROUP!: <%= expression.title %></b></h3>
+    <% end %>
+
+    <%= form_for :support, Routes.page_path(@conn, :submit_vote), fn f -> %>
+
+      <%= if !is_nil(expression.parent) do %>
+        <div class="row">
+          <div>I support this message<%= radio_button f, :support, 1 %></div>
+          <div>I reject this message<%= radio_button f, :support, -1 %></div>
+        </div>
+      <% else %>
+        <div class="row">
+          <div>I vet this group<%= radio_button f, :support, 1 %></div>
+          <div>I reject this group<%= radio_button f, :support, -1 %></div>
+        </div>
+      <% end %>
+
+      <%= submit "submit", phx_disable_with: "Saving..." %>
+
+      <small>
+        <details>
+          <summary>
+            Optional feedback
+          </summary>
+          <%= textarea f, :note, rows: 6, placeholder: "Optional reasons for why you support or reject (only visible by creator)" %>
+        </details>
+      </small>
+
+      <%= if !is_nil(expression.parent) do %>
+        <p>
+          NOTE: You are 1 of <%= expression.parent.sortition_count %> people to decide if this message should go to all <%= expression.parent.subscriber_count %> people in group: <b><%= expression.parent.title %></b>.
+        </p>
+      <% else %>
+        <p>
+          NOTE: This is a newly proposed Group. This Group will be visible by all users of the Visions Unite app. Please vet carefully.
+        </p>
+      <% end %>
+
+      <%= hidden_input f, :expression_id, value: expression.id %>
+      <%= hidden_input f, :for_group_id, value: expression.seeking_support_from.id %>
+
+    <% end %>
+  </div>
+<% end %>

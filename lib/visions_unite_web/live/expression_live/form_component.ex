@@ -7,10 +7,11 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
   def update(%{expression: expression} = assigns, socket) do
     changeset = Expressions.change_expression(expression)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:changeset, changeset)}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:changeset, changeset)
+    {:ok, socket}
   end
 
   @impl true
@@ -23,7 +24,21 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
     {:noreply, assign(socket, :changeset, changeset)}
   end
 
-  def handle_event("save", %{"expression" => expression_params}, socket) do
+  def handle_event("save_group", %{"expression" => expression_params}, socket) do
+    expression_params = Map.put(expression_params, "author_id", socket.assigns.current_user_id)
+    case Expressions.create_expression(expression_params) do
+      {:ok, _expression, _seeking_supports} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Group created successfully")
+         |> push_redirect(to: socket.assigns.return_to)}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, changeset: changeset)}
+    end
+  end
+
+  def handle_event("save_message", %{"expression" => expression_params}, socket) do
     expression_params = Map.put(expression_params, "author_id", socket.assigns.current_user_id)
     linked_expressions = [expression_params["linked_expression_id"]]
 
@@ -31,7 +46,7 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
       {:ok, _expression, _seeking_supports} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Expression created successfully")
+         |> put_flash(:info, "Message created successfully")
          |> push_redirect(to: socket.assigns.return_to)}
 
       {:error, changeset} ->

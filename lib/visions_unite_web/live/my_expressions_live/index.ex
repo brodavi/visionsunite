@@ -49,9 +49,10 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
 
   defp apply_action(socket, :new, _params) do
     socket
-    |> assign(:page_title, "Visions Unite - New Expression")
+    |> assign(:page_title, "New Group")
     |> assign(:expression, %Expression{})
     |> assign(:linked_expression_id, nil)
+    |> assign(:linked_expression_title, nil)
   end
 
   #

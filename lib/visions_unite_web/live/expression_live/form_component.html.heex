@@ -1,29 +1,38 @@
 <div>
   <h2><%= @title %></h2>
 
-  <h3>linking to: <%= @linked_expression_title %></h3>
+  <%= if !is_nil(@linked_expression_id) do %>
+    <h3>Message for group: <%= @linked_expression_title %></h3>
 
-  <.form
-    let={f}
-    for={@changeset}
-    id="expression-form"
-    phx-target={@myself}
-    phx-change="validate"
-    phx-submit="save">
-  
-    <%= label f, "Short Title" %>
-    <%= text_input f, :title %>
-    <%= error_tag f, :title %>
+    <%= form_for @changeset, Routes.page_path(@socket, :save_message), fn f -> %>
 
-    <%= label f, "Longer Description" %>
-    <%= textarea f, :body %>
-    <%= error_tag f, :body %>
+      <%= label f, "Short Title" %>
+      <%= text_input f, :title %>
+      <%= error_tag f, :title %>
 
-    <%= hidden_input f, :linked_expression_id, value: @linked_expression_id %>
+      <%= label f, "Longer Description" %>
+      <%= textarea f, :body %>
+      <%= error_tag f, :body %>
 
-    <div>
-      <%= submit "Save", phx_disable_with: "Saving..." %>
-    </div>
-  </.form>
+      <%= hidden_input f, :linked_expression_id, value: @linked_expression_id %>
+
+      <div>
+        <%= submit "Save", phx_disable_with: "Saving..." %>
+      </div>
+    <% end %>
+
+  <% else %>
+
+    <%= form_for @changeset, Routes.page_path(@socket, :save_group), fn f -> %>
+
+      <%= label f, "Group Name" %>
+      <%= text_input f, :title %>
+      <%= error_tag f, :title %>
+
+      <div>
+        <%= submit "Save", phx_disable_with: "Saving..." %>
+      </div>
+    <% end %>
+
+  <% end %>
 </div>
-

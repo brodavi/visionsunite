@@ -36,14 +36,15 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
     linked_expression_title = Expressions.get_expression!(linked_expression_id).title
 
     socket
-    |> assign(:page_title, "Visions Unite - New Expression")
+    |> assign(:page_title, "New Message")
     |> assign(:new_expression, %Expression{})
     |> assign(:linked_expression_id, linked_expression_id)
     |> assign(:linked_expression_title, linked_expression_title)
   end
 
   @impl true
-  def handle_event("subscribe", %{"expression_id" => expression_id}, socket) do
+  def handle_event("set_follow", %{"expression_id" => expression_id, "follow" => follow}, socket) do
+
     user_id = socket.assigns.current_user_id
 
     existing_subscription =
@@ -52,134 +53,50 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
         user_id
       )
 
-    case existing_subscription do
-      nil ->
-        ExpressionSubscriptions.create_expression_subscription(%{
-          expression_id: expression_id,
-          user_id: user_id,
-          subscribe: true
-        })
-
-      _ ->
-        ExpressionSubscriptions.update_expression_subscription(
-          existing_subscription,
-          %{
-            subscribe: true
-          }
-        )
-    end
-
-    socket =
-      socket
-      |> put_flash(:info, "Successfully subscribed.")
-
-    socket = update_expression(socket, expression_id, user_id)
-
-    {:noreply, socket}
-  end
-
-  #
-  # NOTE: this is a "reverse subscribe." This is needed because
-  #       if a user wants to ignore a fully-supported expression, she cannot. They are by-default shown to everyone.
-  #
-  @impl true
-  def handle_event("ignore", %{"expression_id" => expression_id}, socket) do
-    user_id = socket.assigns.current_user_id
-
-    # TODO: do the more efficient filtering expression, don't hit the DB
-
-    # TODO: do upsert instead of this
-    existing_subscription =
-      ExpressionSubscriptions.get_expression_subscription_for_expression_and_user(
+    existing_mute =
+      ExpressionSubscriptions.get_expression_muting_for_expression_and_user(
         expression_id,
         user_id
       )
 
-    case existing_subscription do
-      nil ->
-        ExpressionSubscriptions.create_expression_subscription(%{
-          expression_id: expression_id,
-          user_id: user_id,
-          subscribe: false
-        })
+    case {existing_subscription, existing_mute} do
+      {nil, nil} ->
+        result =
+          ExpressionSubscriptions.create_expression_subscription(%{
+            expression_id: expression_id,
+            user_id: user_id,
+            subscribe: follow
+          })
 
-      _ ->
+      {existing_subscription, nil} ->
         ExpressionSubscriptions.update_expression_subscription(
           existing_subscription,
           %{
-            subscribe: false
+            subscribe: follow
+          }
+        )
+
+      {nil, existing_mute} ->
+        ExpressionSubscriptions.update_expression_subscription(
+          existing_mute,
+          %{
+            subscribe: follow
           }
         )
     end
-
-    socket =
-      socket
-      |> put_flash(:info, "Successfully ignored expression.")
-
-    socket = update_expression(socket, expression_id, user_id)
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event(
-        "my_support",
-        %{
-          "support_form" => %{
-            "expression_id" => expression_id,
-            "support" => support,
-            "note" => note,
-            "for_group_id" => for_group_id
-          }
-        },
-        socket
-      ) do
-    user_id = socket.assigns.current_user_id
-
-    Supports.create_support(%{
-      support: support,
-      note: note,
-      user_id: user_id,
-      expression_id: expression_id,
-      for_group_id: for_group_id
-    })
 
     actioned =
-      case support do
-        "-1" ->
-          "objected to"
+      case follow do
+        "true" ->
+          "followed"
 
-        "0" ->
-          "ignored"
-
-        "1" ->
-          "supported"
+        "false" ->
+          "unfollowed"
       end
 
     socket =
       socket
-      |> put_flash(:info, "Successfully #{actioned} expression. Thank you!")
-
-    socket = update_expression(socket, expression_id, user_id)
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event(
-        "my_support",
-        %{
-          "support_form" => %{
-            "expression_id" => expression_id
-          }
-        },
-        socket
-      ) do
-    user_id = socket.assigns.current_user_id
-
-    socket =
-      socket
-      |> put_flash(:error, "Support or reject?")
+      |> put_flash(:info, "Successfully #{actioned}.")
 
     socket = update_expression(socket, expression_id, user_id)
 

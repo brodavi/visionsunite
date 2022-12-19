@@ -30,22 +30,16 @@
 
 <%= if !@expression.seeking_support_from and @current_user do %>
   <div class="roww">
-    <%= if !is_nil(@expression.subscribed) and @expression.subscribed.subscribe do %>
+    <%= if @expression.subscribed do %>
       <button class="small" disabled>Join Conversation</button>
     <% else %>
-      <button class="small" phx-click="subscribe" phx-value-expression_id={@expression.id}>Join Conversation</button>
+      <button class="small" phx-click="set_follow" phx-value-follow={"true"} phx-value-expression_id={@expression.id}>Join Conversation</button>
     <% end %>
 
     <%= if @expression.subscribed do %>
-      <button class="small" phx-click="unsubscribe" phx-value-expression_id={@expression.id}>Leave Conversation</button>
+      <button class="small" phx-click="set_follow" phx-value-follow={"false"} phx-value-expression_id={@expression.id}>Leave Conversation</button>
     <% else %>
       <button class="small" disabled>Leave Conversation</button>
-    <% end %>
-
-    <%= if @expression.subscribed do %>
-      <button class="small" phx-click="ignore" phx-value-expression_id={@expression.id}>Mute Conversation</button>
-    <% else %>
-      <button class="small" disabled>Mute Conversation</button>
     <% end %>
 
     <button class="small">
@@ -53,57 +47,6 @@
         Create a Linked Expression
       <% end %>
     </button>
-  </div>
-<% end %>
-
-<%= if @expression.seeking_support_from do %>
-
-  <div class="roww">
-
-    <.form
-      let={f}
-      for={:support_form}
-      id={"support-form-#{@expression.id}"}
-      phx-submit="my_support"
-      class="columnn">
-
-      <span>I support this expression<%= radio_button f, :support, 1 %></span>
-      <span>I reject this expression<%= radio_button f, :support, -1 %></span>
-
-      <%= submit "submit", phx_disable_with: "Saving...", value: :test2 %>
-
-      <small>
-        <details>
-          <summary>
-            Optional feedback
-          </summary>
-          <%= textarea f, :note, rows: 6, placeholder: "Optional reasons for why you support or reject (only visible by expression author)" %>
-        </details>
-      </small>
-
-      <%= if !is_nil(@expression.parent) do %>
-        <p>
-          NOTE: You are 1 of <%= @expression.parent.sortition_count %> people to decide if this message should go to all <%= @expression.parent.subscriber_count %> people in group: <b><%= @expression.parent.title %></b>.
-        </p>
-      <% end %>
-
-      <%= hidden_input f, :expression_id, value: @expression.id %>
-      <%= hidden_input f, :for_group_id, value: @expression.seeking_support_from.id %>
-
-    </.form>
-
-  </div>
-
-<% end %>
-
-<%= if @expression.author_id == @current_user_id and Map.has_key?(@expression, :supports) and Enum.count(@expression.supports) != 0 do %>
-  <h4>user feedback</h4>
-  <div>
-    <ul>
-      <%= for support <- @expression.supports do %>
-        <li><%= support.note %></li>
-      <% end %>
-    </ul>
   </div>
 <% end %>
 
@@ -165,8 +108,6 @@
     </details>
   </small>
 <% end %>
-
-<NavComponent.nav active={nil} current_user_id={@current_user_id} />
 
 <%= if Enum.count(@children) !== 0 do %>
   <%= for child <- @children do %>

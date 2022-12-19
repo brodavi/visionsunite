@@ -1,5 +1,3 @@
-<NavComponent.nav active={@live_action} current_user_id={@current_user_id} />
-
 <%= if @live_action in [:new] do %>
   <.modal return_to={Routes.my_expressions_index_path(@socket, :index)}>
     <.live_component
@@ -9,6 +7,8 @@
       action={@live_action}
       expression={@expression}
       current_user_id={@current_user_id}
+      linked_expression_id={@linked_expression_id}
+      linked_expression_title={@linked_expression_title}
       return_to={Routes.my_expressions_index_path(@socket, :index)}
     />
   </.modal>
@@ -17,7 +17,7 @@
 <br>
 
 <%= live_patch to: Routes.my_expressions_index_path(@socket, :new) do %>
-  <button>Create New "Root" Expression (warning! this will need to pass a sortition pulled from the entire user base!)</button>
+  <button>Create a New Group</button>
 <% end %>
 
 <br>

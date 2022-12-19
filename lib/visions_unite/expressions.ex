@@ -267,6 +267,31 @@ defmodule VisionsUnite.Expressions do
   end
 
   @doc """
+  Creates a expression and seeks supporters.
+
+  ## Examples
+
+      iex> create_expression_and_seek_support(%{field: value})
+      {:ok, %Expression{}}
+
+      iex> create_expression_and_seek_support(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_expression_and_seek_support(attrs \\ %{}) do
+    case create_expression(attrs) do
+      {:ok, expression} ->
+        # Let's now seek supporters for this expression
+        seeking_supports = SeekingSupports.seek_supporters(expression)
+
+        {:ok, expression}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  @doc """
   Creates a expression with linked expressions.
 
   ## Examples

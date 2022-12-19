@@ -28,7 +28,7 @@ defmodule VisionsUnite.Expressions.Expression do
   def changeset(expression, attrs) do
     expression
     |> cast(attrs, [:title, :body, :temperature, :author_id])
-    |> validate_required([:title, :body, :author_id])
+    |> validate_required([:title, :author_id])
   end
 
   def annotate_with_group_data(expressions) when is_list(expressions) do
@@ -145,6 +145,13 @@ defmodule VisionsUnite.Expressions.Expression do
     })
   end
 
+  def annotate_with_seeking_support(expressions, user_id) when is_list(expressions) do
+    expressions
+    |> Enum.map(fn expression ->
+      annotate_with_seeking_support(expression, user_id)
+    end)
+  end
+
   def annotate_with_seeking_support(expression, user_id) when is_map(expression) do
     seeking_support_from =
       SeekingSupports.list_support_sought_for_user(user_id)
@@ -178,8 +185,14 @@ defmodule VisionsUnite.Expressions.Expression do
         user_id
       )
 
-    Map.merge(expression, %{
-      subscribed: subscribed
-    })
+    if subscribed do
+      Map.merge(expression, %{
+        subscribed: subscribed.subscribe
+      })
+    else
+      Map.merge(expression, %{
+        subscribed: :false
+      })
+    end
   end
 end

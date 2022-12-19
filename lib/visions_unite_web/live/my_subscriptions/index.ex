@@ -21,7 +21,6 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
 
     my_subscriptions =
       list_my_subscriptions(user_id)
-      |> filter_members_of(my_expressions)
 
     socket =
       socket
