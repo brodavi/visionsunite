@@ -22,9 +22,11 @@ defmodule VisionsUniteWeb.Router do
   end
 
   scope "/", VisionsUniteWeb do
-    pipe_through :browser
+    pipe_through [:browser, :user_session]
 
-    get "/", PageController, :index
+    live "/", FullySupportedExpressionsLive.Index, :index_important_groups
+    live "/important_groups", FullySupportedExpressionsLive.Index, :index_important_groups
+    live "/important_messages", FullySupportedExpressionsLive.Index, :index_important_messages
 
     get "/about", PageController, :about
     post "/about", PageController, :update_about
@@ -88,17 +90,21 @@ defmodule VisionsUniteWeb.Router do
 
     post "/create_expressions", PageController, :create_expression
     post "/submit_vote", PageController, :submit_vote
+
     get "/vote", PageController, :vote
+
     post "/save_group", PageController, :save_group
     post "/save_message", PageController, :save_message
 
     live "/expression/:id/new", ExpressionShowLive.Show, :new
-    live "/expressions_seeking_my_support", ExpressionsSeekingMySupportLive.Index, :index
-    live "/fully_supported_expressions", FullySupportedExpressionsLive.Index, :index
-    live "/ignored_expressions", IgnoredExpressionsLive.Index, :index
-    live "/my_subscriptions", MySubscriptionsLive.Index, :index
+
     live "/my_expressions", MyExpressionsLive.Index, :index
     live "/my_expressions/new", MyExpressionsLive.Index, :new
+
+    live "/my_subscribed_groups", FullySupportedExpressionsLive.Index, :my_subscribed_groups
+    live "/my_subscribed_messages", FullySupportedExpressionsLive.Index, :my_subscribed_messages
+
+
     live "/all_expressions", AllExpressionsLive.Index, :index
   end
 

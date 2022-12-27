@@ -2,18 +2,21 @@
 
 <br>
 
-<%= if Enum.count(@fully_supported_expressions) != 0 do %>
+<%= if Enum.count(@groups) != 0 do %>
   <section>
-    <h3>Fully Supported Expressions</h3>
-    <div id="fully-supported-expressions">
-      <%= for expression <- @fully_supported_expressions do %>
-        <div id={"supported-expression-#{expression.id}"} class="roww">
-          <div>
-            <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
-          </div>
-        </div>
-      <% end %>
-    </div>
+    <%= for expression <- @groups do %>
+      <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
+    <% end %>
   </section>
 <% end %>
 
+<%= if Enum.count(@messages) != 0 do %>
+  <section>
+    <%= for expression <- @messages do %>
+      <div id={"important-message-#{expression.id}"} class="boxed">
+        <ExpressionComponent.expression expression={expression} current_user_id={@current_user_id} />
+        <%= expression.body %>
+      </div>
+    <% end %>
+  </section>
+<% end %>

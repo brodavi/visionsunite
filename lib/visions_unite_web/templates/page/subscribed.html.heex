@@ -1,0 +1,15 @@
+<section>
+  <h1>Welcome to Visions Unite!</h1>
+
+  <nav>
+    <a href="/">View All Groups</a>
+    <a href="/subscribed" class="active">View Subscribed Groups</a>
+  </nav>
+
+  <br>
+
+  <%= for group <- @subscribed_groups do %>
+    <VisionsUniteWeb.ExpressionComponent.expression expression={group} current_user_id={nil} />
+  <% end %>
+
+</section>

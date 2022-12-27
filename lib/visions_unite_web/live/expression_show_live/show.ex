@@ -17,7 +17,10 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
     user_id = session["current_user_id"]
     expression_id = params["id"]
 
-    socket = update_expression(socket, expression_id, user_id)
+    socket =
+      socket
+      |> assign(:view_all, :false)
+      |> update_expression(expression_id, user_id)
 
     {:ok, socket}
   end
@@ -43,6 +46,15 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
   end
 
   @impl true
+  def handle_event("view_all_toggle", _params, socket) do
+    socket =
+      socket
+      |> assign(:view_all, !socket.assigns.view_all)
+      |> update_expression(socket.assigns.expression.id, socket.assigns.current_user_id)
+
+    {:noreply, socket}
+  end
+
   def handle_event("set_follow", %{"expression_id" => expression_id, "follow" => follow}, socket) do
 
     user_id = socket.assigns.current_user_id
@@ -125,8 +137,16 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
     fully_supporteds = FullySupporteds.list_fully_supporteds_for_expression(expression.id)
 
     children =
-      ExpressionLinkages.list_expression_linkages_for_link(expression.id)
-      |> Enum.map(&Expressions.get_expression!(&1.expression_id))
+      case socket.assigns.view_all do
+        :true ->
+          ExpressionLinkages.list_children_for_expression(expression.id)
+        :false ->
+          ExpressionLinkages.list_supported_children_for_expression(expression.id)
+      end
+
+    children =
+      children
+      |> Enum.map(& Expressions.get_expression!(&1.expression_id))
       |> Expression.annotate_with_fully_supporteds(user_id)
 
     current_user = Accounts.get_user!(user_id)

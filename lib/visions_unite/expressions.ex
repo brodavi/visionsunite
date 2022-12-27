@@ -54,6 +54,35 @@ defmodule VisionsUnite.Expressions do
   end
 
   @doc """
+  Returns the list of groups a user is subscribed to (aka "top-level expressions")
+
+  ## Examples
+
+      iex> list_vetted_groups_for_user(user_id)
+      [%Expression{}, ...]
+
+  """
+  def list_vetted_groups_for_user(nil), do: []
+  def list_vetted_groups_for_user(user_id) do
+    expression_linkage_ids =
+      ExpressionLinkages.list_expression_linkages()
+      |> Enum.map(& &1.expression_id)
+
+    expression_subscription_ids =
+      ExpressionSubscriptions.list_expression_subscriptions_for_user(user_id)
+      |> Enum.map(& &1.expression_id)
+
+    query =
+      from e in Expression,
+      join: fs in FullySupported,
+      on: fs.expression_id == e.id,
+      where: e.id not in ^expression_linkage_ids and
+    e.id in ^expression_subscription_ids
+
+    Repo.all(query)
+  end
+
+  @doc """
   Returns the list of groups ("aka top-level expressions")
 
   ## Examples
@@ -75,6 +104,53 @@ defmodule VisionsUnite.Expressions do
   end
 
   @doc """
+  Returns the list of supported messages
+
+  ## Examples
+
+      iex> list_supported_messages()
+      [%Expression{}, ...]
+
+  """
+  def list_supported_messages do
+    expression_linkage_ids =
+      ExpressionLinkages.list_expression_linkages()
+      |> Enum.map(& &1.expression_id)
+
+    query =
+      from e in Expression,
+        join: fs in FullySupported,
+        on: fs.expression_id == e.id,
+        where: e.id in ^expression_linkage_ids
+
+    Repo.all(query)
+  end
+
+  @doc """
+  Returns the list of supported messages a user is subscribed to
+
+  ## Examples
+
+      iex> list_supported_messages_for_user(user_id)
+      [%Expression{}, ...]
+
+  """
+  def list_supported_messages_for_user(nil), do: []
+  def list_supported_messages_for_user(user_id) do
+    expression_ids =
+      ExpressionSubscriptions.list_group_subscriptions_for_user(user_id)
+      |> Enum.reduce([], fn group, acc ->
+        ExpressionLinkages.list_supported_children_for_expression(group.expression_id) ++ acc
+      end)
+      |> Enum.map(& &1.expression_id)
+
+    query =
+      from e in Expression,
+      where: e.id in ^expression_ids
+
+    Repo.all(query)
+  end
+  @doc """
   Returns the list of expressions.
 
   ## Examples
@@ -92,7 +168,7 @@ defmodule VisionsUnite.Expressions do
 
   ## Examples
 
-      iex> list_ignoreded_expressions(user_id)
+      iex> list_ignored_expressions(user_id)
       [%Expression{}, ...]
 
   """

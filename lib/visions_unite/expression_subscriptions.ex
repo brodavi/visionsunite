@@ -9,6 +9,7 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
   alias VisionsUnite.Accounts
   alias VisionsUnite.ExpressionLinkages
+  alias VisionsUnite.FullySupporteds.FullySupported
   alias VisionsUnite.ExpressionSubscriptions.ExpressionSubscription
   alias VisionsUnite.Expressions.Expression
 
@@ -123,6 +124,30 @@ defmodule VisionsUnite.ExpressionSubscriptions do
         where:
           es.user_id == ^user_id and
             es.subscribe != false
+
+    Repo.all(query)
+  end
+
+  @doc """
+  Returns the list of GROUP subscriptions for a particular user.
+
+  ## Examples
+
+      iex> list_group_subscriptions_for_user(user_id)
+      [%ExpressionSubscription{}, ...]
+
+  """
+  def list_group_subscriptions_for_user(user_id) do
+    expression_linkage_ids =
+      ExpressionLinkages.list_expression_linkages()
+      |> Enum.map(& &1.expression_id)
+
+    query =
+      from es in ExpressionSubscription,
+      join: fs in FullySupported,
+      on: fs.expression_id == es.expression_id,
+      where: es.user_id == ^user_id and
+    es.expression_id not in ^expression_linkage_ids
 
     Repo.all(query)
   end

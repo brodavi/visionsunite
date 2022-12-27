@@ -17,10 +17,12 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
 
     user_id = session["current_user_id"]
 
-    my_expressions = list_my_expressions(user_id)
+    ignored_expressions =
+      list_ignored_expressions(user_id)
 
     my_subscriptions =
       list_my_subscriptions(user_id)
+      |> filter_members_of(ignored_expressions)
 
     socket =
       socket
@@ -65,6 +67,10 @@ defmodule VisionsUniteWeb.MySubscriptionsLive.Index do
       |> assign(:my_subscriptions, my_subscriptions)
 
     {:noreply, socket}
+  end
+
+  defp list_ignored_expressions(user_id) do
+    Expressions.list_ignored_expressions(user_id)
   end
 
   defp list_my_subscriptions(user_id) do

@@ -1,5 +1,5 @@
 <%= if @live_action in [:new] do %>
-  <.modal return_to={Routes.my_expressions_index_path(@socket, :index)}>
+  <.modal return_to={"/expression/#{@expression.id}"}>
     <.live_component
       module={VisionsUniteWeb.ExpressionLive.FormComponent}
       id={@expression.id || :new}
@@ -9,7 +9,7 @@
       linked_expression_id={@linked_expression_id}
       linked_expression_title={@linked_expression_title}
       current_user_id={@current_user_id}
-      return_to={Routes.my_expressions_index_path(@socket, :index)}
+      return_to={"/expression/#{@expression.id}"}
     />
   </.modal>
 <% end %>
@@ -116,4 +116,11 @@
       <%= child.body %>
     </div>
   <% end %>
+
+  <%= if @view_all do %>
+    <button phx-click="view_all_toggle" class="small">View Only Fully Supported Messages</button>
+  <% else %>
+    <button phx-click="view_all_toggle" class="small">View All Messages</button>
+  <% end %>
 <% end %>
+

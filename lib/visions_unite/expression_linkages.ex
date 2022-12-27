@@ -35,8 +35,27 @@ defmodule VisionsUnite.ExpressionLinkages do
   """
   def list_expression_linkages_for_expression(expression_id) do
     query =
-      from ep in ExpressionLinkage,
-        where: ep.expression_id == ^expression_id
+      from el in ExpressionLinkage,
+        where: el.expression_id == ^expression_id
+
+    Repo.all(query)
+  end
+
+  @doc """
+  Returns the list of supported children for a particular expression.
+
+  ## Examples
+
+      iex> list_supported_children_for_expression(expression_id)
+      [%ExpressionLinkage{}, ...]
+
+  """
+  def list_supported_children_for_expression(expression_id) do
+    query =
+      from el in ExpressionLinkage,
+      join: fs in FullySupported,
+      on: fs.expression_id == el.expression_id,
+      where: el.link_id == ^expression_id
 
     Repo.all(query)
   end
@@ -73,20 +92,18 @@ defmodule VisionsUnite.ExpressionLinkages do
   end
 
   @doc """
-  Returns the list of expression_linkages for a particular link.
+  Returns the list of expression_linkages for a particular expression.
 
   ## Examples
 
-      iex> list_expression_linkages_for_link(link_id)
+      iex> list_children_for_expression(expression_id)
       [%ExpressionLinkage{}, ...]
 
   """
-  def list_expression_linkages_for_link(link_id) do
+  def list_children_for_expression(expression_id) do
     query =
-      from ep in ExpressionLinkage,
-        join: fs in FullySupported,
-        on: fs.expression_id == ep.expression_id,
-        where: ep.link_id == ^link_id
+      from el in ExpressionLinkage,
+        where: el.expression_id == ^expression_id
 
     Repo.all(query)
   end

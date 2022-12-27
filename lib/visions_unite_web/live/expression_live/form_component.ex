@@ -47,7 +47,7 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Message created successfully")
-         |> push_redirect(to: socket.assigns.return_to)}
+         |> push_redirect(to: "/expression/#{expression_params["linked_expression_id"]}")}
 
       {:error, changeset} ->
         {:noreply, assign(socket, changeset: changeset)}

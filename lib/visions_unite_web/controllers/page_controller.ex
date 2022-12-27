@@ -6,8 +6,26 @@ defmodule VisionsUniteWeb.PageController do
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
 
-  def index(conn, _params) do
+  def index_all(conn, _params) do
+    user_id =
+      if !is_nil(conn.assigns.current_user) do
+        conn.assigns.current_user.id
+      else
+        nil
+      end
 
+    seeking_support_from_user =
+      SeekingSupports.list_support_sought_for_user(user_id)
+
+    if Enum.count(seeking_support_from_user) !== 0 do
+      redirect(conn, to: "/vote")
+    else
+      groups = Expressions.list_vetted_groups()
+      render(conn, "all.html", groups: groups)
+    end
+  end
+
+  def index_subscribed(conn, _params) do
     user_id =
       if !is_nil(conn.assigns.current_user) do
         conn.assigns.current_user.id
@@ -20,8 +38,8 @@ defmodule VisionsUniteWeb.PageController do
     if Enum.count(seeking_support_from_user) !== 0 do
       redirect(conn, to: "/vote")
     else
-      groups = Expressions.list_vetted_groups()
-      render(conn, "index.html", groups: groups)
+      subscribed_groups = Expressions.list_vetted_groups_for_user(user_id)
+      render(conn, "subscribed.html", subscribed_groups: subscribed_groups)
     end
   end
 
