@@ -103,7 +103,7 @@ defmodule VisionsUnite.ExpressionLinkages do
   def list_children_for_expression(expression_id) do
     query =
       from el in ExpressionLinkage,
-        where: el.expression_id == ^expression_id
+        where: el.link_id == ^expression_id
 
     Repo.all(query)
   end

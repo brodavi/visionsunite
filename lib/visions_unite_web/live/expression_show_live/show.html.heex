@@ -14,6 +14,19 @@
   </.modal>
 <% end %>
 
+<%= if Enum.count(@children) !== 0 and @current_user do %>
+  <nav>
+    <%= if @view_all do %>
+      <a href="#" phx-click="view_all_toggle">View Only Fully Supported Messages</a>
+      <a href="#" phx-click="view_all_toggle" class="active">View All Messages</a>
+    <% else %>
+      <a href="#" phx-click="view_all_toggle" class="active">View Only Fully Supported Messages</a>
+      <a href="#" phx-click="view_all_toggle">View All Messages</a>
+    <% end %>
+  </nav>
+  <br/>
+<% end %>
+
 <%= if !is_nil(@expression.parent) do %>
   <h1>
     <%= link @expression.parent.title, to: "/expression/#{@expression.parent.id}" %> / <%= @expression.title %>
@@ -115,12 +128,6 @@
       <ExpressionComponent.expression expression={child} current_user_id={@current_user_id} />
       <%= child.body %>
     </div>
-  <% end %>
-
-  <%= if @view_all do %>
-    <button phx-click="view_all_toggle" class="small">View Only Fully Supported Messages</button>
-  <% else %>
-    <button phx-click="view_all_toggle" class="small">View All Messages</button>
   <% end %>
 <% end %>
 
