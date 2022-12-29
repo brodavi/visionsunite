@@ -5,45 +5,40 @@ defmodule VisionsUniteWeb.PageController do
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
+  alias VisionsUnite.NewNotifications
+  alias VisionsUniteWeb.ExpressionComponent
 
-  def index_all(conn, _params) do
-    user_id =
-      if !is_nil(conn.assigns.current_user) do
-        conn.assigns.current_user.id
-      else
-        nil
-      end
+  def submit_vote(conn, %{"viewed" => _}) do
+    NewNotifications.list_new_notifications_for_user(conn.assigns.current_user.id)
+    |> Enum.each(& NewNotifications.delete_new_notification(&1))
 
-    seeking_support_from_user =
-      SeekingSupports.list_support_sought_for_user(user_id)
+    seeking_supports =
+      SeekingSupports.list_support_sought_for_user(conn.assigns.current_user.id)
+      |> Enum.map(& Expressions.get_expression!(&1.expression_id))
+      |> Expression.annotate_with_group_data()
+      |> Expression.annotate_with_seeking_support(conn.assigns.current_user.id)
 
-    if Enum.count(seeking_support_from_user) !== 0 do
-      redirect(conn, to: "/vote")
+    new_expressions = []
+
+    if Enum.count(seeking_supports) !== 0 do
+      render(conn, "vote.html", seeking_supports: seeking_supports, new_expressions: new_expressions)
     else
-      groups = Expressions.list_vetted_groups()
-      render(conn, "all.html", groups: groups)
-    end
-  end
-
-  def index_subscribed(conn, _params) do
-    user_id =
-      if !is_nil(conn.assigns.current_user) do
-        conn.assigns.current_user.id
-      else
-        nil
-      end
-
-    seeking_support_from_user =
-      SeekingSupports.list_support_sought_for_user(user_id)
-    if Enum.count(seeking_support_from_user) !== 0 do
-      redirect(conn, to: "/vote")
-    else
-      subscribed_groups = Expressions.list_vetted_groups_for_user(user_id)
-      render(conn, "subscribed.html", subscribed_groups: subscribed_groups)
+      redirect(conn, to: "/")
     end
   end
 
   def submit_vote(conn, %{"support" => support_params}) do
+    actioned =
+      case support_params["support"] do
+        nil ->
+          {:error, "no vote"}
+
+        "-1" ->
+          "objected to"
+
+        "1" ->
+          "supported"
+      end
 
     Supports.create_support(%{
       support: support_params["support"],
@@ -53,32 +48,34 @@ defmodule VisionsUniteWeb.PageController do
       for_group_id: support_params["for_group_id"]
     })
 
-    actioned =
-      case support_params["support"] do
-        "-1" ->
-          "objected to"
-
-        "0" ->
-          "ignored"
-
-        "1" ->
-          "supported"
-      end
-
-    conn =
-      conn
-      |> put_flash(:info, "Successfully #{actioned} expression. Thank you!")
-
     seeking_supports =
       SeekingSupports.list_support_sought_for_user(conn.assigns.current_user.id)
       |> Enum.map(& Expressions.get_expression!(&1.expression_id))
       |> Expression.annotate_with_group_data()
       |> Expression.annotate_with_seeking_support(conn.assigns.current_user.id)
 
-    if Enum.count(seeking_supports) !== 0 do
-      render(conn, "vote.html", seeking_supports: seeking_supports)
-    else
-      redirect(conn, to: "/")
+    new_expressions =
+      Expressions.list_new_expressions_for_user(conn.assigns.current_user.id)
+      |> Expression.annotate_with_fully_supporteds()
+
+    case actioned do
+      {:error, "no vote"} ->
+        conn =
+          conn
+          |> put_flash(:error, "Please select \"support\" or \"reject\" below.")
+
+        render(conn, "vote.html", seeking_supports: seeking_supports, new_expressions: new_expressions)
+      _ ->
+
+        conn =
+          conn
+          |> put_flash(:info, "Successfully #{actioned} expression. Thank you!")
+
+        if Enum.count(seeking_supports) !== 0 do
+          render(conn, "vote.html", seeking_supports: seeking_supports, new_expressions: new_expressions)
+        else
+          redirect(conn, to: "/")
+        end
     end
   end
 
@@ -89,7 +86,10 @@ defmodule VisionsUniteWeb.PageController do
       |> Expression.annotate_with_group_data()
       |> Expression.annotate_with_seeking_support(conn.assigns.current_user.id)
 
-    render(conn, "vote.html", seeking_supports: seeking_supports)
+    new_expressions =
+      Expressions.list_new_expressions_for_user(conn.assigns.current_user.id)
+
+    render(conn, "vote.html", seeking_supports: seeking_supports, new_expressions: new_expressions)
   end
 
   def about(conn, _params) do

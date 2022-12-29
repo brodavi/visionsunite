@@ -1,55 +1,89 @@
-<h2>
-  You are being called to either vet the creation of new groups or support messages to be sent to subscribers of a group. Please do this before you continue.
-</h2>
+<%= if Enum.count(@seeking_supports) !== 0 do %>
+  <h2>
+    You are being called to either vet the creation of new groups or support messages to be sent to subscribers of a group. Please do this before you continue.
+  </h2>
 
-<%= for expression <- @seeking_supports do %>
-  <div class="boxed">
-    <%= if !is_nil(expression.parent) do %>
-      <h4>Vetting Message: <%= expression.title %></h4>
-
-      <p><%= expression.body %></p>
-    <% else %>
-      <h3><b>VETTING GROUP!: <%= expression.title %></b></h3>
-    <% end %>
-
-    <%= form_for :support, Routes.page_path(@conn, :submit_vote), fn f -> %>
-
+  <%= for expression <- @seeking_supports do %>
+    <div class="boxed">
       <%= if !is_nil(expression.parent) do %>
-        <div class="row">
-          <div>I support this message<%= radio_button f, :support, 1 %></div>
-          <div>I reject this message<%= radio_button f, :support, -1 %></div>
-        </div>
+        <h4>Vetting Message: <%= expression.title %></h4>
+
+        <p><%= expression.body %></p>
       <% else %>
-        <div class="row">
-          <div>I vet this group<%= radio_button f, :support, 1 %></div>
-          <div>I reject this group<%= radio_button f, :support, -1 %></div>
-        </div>
+        <h3><b>VETTING GROUP!: <%= expression.title %></b></h3>
       <% end %>
 
-      <%= submit "submit", phx_disable_with: "Saving..." %>
+      <%= form_for :support, Routes.page_path(@conn, :submit_vote), fn f -> %>
 
-      <small>
-        <details>
-          <summary>
-            Optional feedback
-          </summary>
-          <%= textarea f, :note, rows: 6, placeholder: "Optional reasons for why you support or reject (only visible by creator)" %>
-        </details>
-      </small>
+        <%= if !is_nil(expression.parent) do %>
+          <div class="roww centered">
+            <div class="boxed">I support this message<%= radio_button f, :support, 1 %></div>
+            <div class="boxed">I reject this message<%= radio_button f, :support, -1 %></div>
+          </div>
+        <% else %>
+          <div class="roww centered">
+            <div class="boxed">I vet this group<%= radio_button f, :support, 1 %></div>
+            <div class="boxed">I reject this group<%= radio_button f, :support, -1 %></div>
+          </div>
+        <% end %>
 
-      <%= if !is_nil(expression.parent) do %>
-        <p>
-          NOTE: You are 1 of <%= expression.parent.sortition_count %> people to decide if this message should go to all <%= expression.parent.subscriber_count %> people in group: <b><%= expression.parent.title %></b>.
-        </p>
-      <% else %>
-        <p>
-          NOTE: This is a newly proposed Group. This Group will be visible by all users of the Visions Unite app. Please vet carefully.
-        </p>
+        <%= submit "submit", phx_disable_with: "Saving..." %>
+
+        <small>
+          <details>
+            <summary>
+              Optional feedback
+            </summary>
+            <%= textarea f, :note, rows: 6, placeholder: "Optional reasons for why you support or reject (only visible by creator)" %>
+          </details>
+        </small>
+
+        <%= if !is_nil(expression.parent) do %>
+          <p>
+            NOTE: You are 1 of <%= expression.parent.sortition_count %> people to decide if this message should go to all <%= expression.parent.subscriber_count %> people in group: <b><%= expression.parent.title %></b>.
+          </p>
+        <% else %>
+          <p>
+            NOTE: This is a newly proposed Group. This Group will be visible by all users of the Visions Unite app. Please vet carefully.
+          </p>
+        <% end %>
+
+        <%= hidden_input f, :expression_id, value: expression.id %>
+        <%= hidden_input f, :for_group_id, value: expression.seeking_support_from.id %>
+
       <% end %>
+    </div>
+  <% end %>
+<% end %>
 
-      <%= hidden_input f, :expression_id, value: expression.id %>
-      <%= hidden_input f, :for_group_id, value: expression.seeking_support_from.id %>
+<%= if Enum.count(@new_expressions) !== 0 do %>
+  <br/>
 
-    <% end %>
-  </div>
+  <h1>There are some new expressions for you to view!</h1>
+
+  <%= form_for :viewed, Routes.page_path(@conn, :submit_vote), fn f -> %>
+    <div class="centered">
+      <%= hidden_input f, :viewed, value: :true %>
+      <%= submit "ok", phx_disable_with: "Saving..." %> (consider them viewed)
+    </div>
+  <% end %>
+
+  <br/>
+
+  <%= for expression <- @new_expressions do %>
+    <div id={"important-message-#{expression.id}"} class="boxed">
+      <p>
+        <%= if is_list(expression.fully_supporteds) and Enum.count(expression.fully_supporteds) !== 0 do %>
+          <b>
+            / <%= Enum.join(expression.fully_supporteds, ", ") %> / <%= expression.title %>
+          </b>
+        <% else %>
+          <b>
+            / <%= expression.title %>
+          </b>
+        <% end %>
+      </p>
+      <%= expression.body %>
+    </div>
+  <% end %>
 <% end %>

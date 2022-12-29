@@ -15,6 +15,7 @@ defmodule VisionsUnite.Expressions do
   alias VisionsUnite.FullySupporteds.FullySupported
   alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUnite.ExpressionSubscriptions.ExpressionSubscription
+  alias VisionsUnite.NewNotifications.NewNotification
 
   @doc """
   Returns the preloaded expression or expressions
@@ -182,6 +183,26 @@ defmodule VisionsUnite.Expressions do
         where: es.subscribe == false
 
     Repo.all(ignored_query)
+  end
+
+  @doc """
+  Returns the list of new expressions that a user hasn't viewed yet.
+
+  ## Examples
+
+      iex> list_new_expressions_for_user(user_id)
+      [%Expression{}, ...]
+
+  """
+  def list_new_expressions_for_user(nil), do: []
+
+  def list_new_expressions_for_user(user_id) do
+    new_query =
+      from e in Expression,
+      join: n in NewNotification,
+      on: n.expression_id == e.id and n.user_id == ^user_id
+
+    Repo.all(new_query)
   end
 
   @doc """

@@ -61,6 +61,23 @@ defmodule VisionsUnite.ExpressionLinkages do
   end
 
   @doc """
+  Returns the list of parents for a particular expression.
+
+  ## Examples
+
+      iex> list_parents_for_expression(expression_id)
+      [%Expression{}, ...]
+
+  """
+  def list_parents_for_expression(expression_id) do
+    query =
+      from el in ExpressionLinkage,
+        where: el.expression_id == ^expression_id
+
+    Repo.all(query)
+  end
+
+  @doc """
   Returns the list of parents for a particular expression and user.
 
   ## Examples

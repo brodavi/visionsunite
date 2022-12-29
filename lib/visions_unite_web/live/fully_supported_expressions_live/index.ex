@@ -19,7 +19,11 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
     seeking_support_from_user =
       SeekingSupports.list_support_sought_for_user(user_id)
 
-    if Enum.count(seeking_support_from_user) !== 0 do
+    new_expressions =
+      Expressions.list_new_expressions_for_user(user_id)
+
+    if Enum.count(seeking_support_from_user) !== 0 or
+      Enum.count(new_expressions) !== 0 do
       socket =
         socket
         |> redirect(to: "/vote")
@@ -84,11 +88,11 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
 
   defp list_supported_messages(user_id) do
     Expressions.list_supported_messages()
-    |> Expression.annotate_with_fully_supporteds(user_id)
+    |> Expression.annotate_with_fully_supporteds()
   end
 
   defp list_supported_messages_for_user(user_id) do
     Expressions.list_supported_messages_for_user(user_id)
-    |> Expression.annotate_with_fully_supporteds(user_id)
+    |> Expression.annotate_with_fully_supporteds_for_user(user_id)
   end
 end

@@ -126,14 +126,33 @@ defmodule VisionsUnite.Expressions.Expression do
     })
   end
 
-  def annotate_with_fully_supporteds(expressions, user_id) when is_list(expressions) do
+  def annotate_with_fully_supporteds(expressions) when is_list(expressions) do
     expressions
     |> Enum.map(fn expression ->
-      annotate_with_fully_supporteds(expression, user_id)
+      annotate_with_fully_supporteds(expression)
     end)
   end
 
-  def annotate_with_fully_supporteds(expression, user_id) when is_map(expression) do
+  def annotate_with_fully_supporteds(expression) when is_map(expression) do
+    fully_supporteds =
+      ExpressionLinkages.list_parents_for_expression(expression.id)
+      |> Enum.map(fn fs ->
+        Expressions.get_expression_title(fs.link_id)
+      end)
+
+    Map.merge(expression, %{
+      fully_supporteds: fully_supporteds
+    })
+  end
+
+  def annotate_with_fully_supporteds_for_user(expressions, user_id) when is_list(expressions) do
+    expressions
+    |> Enum.map(fn expression ->
+      annotate_with_fully_supporteds_for_user(expression, user_id)
+    end)
+  end
+
+  def annotate_with_fully_supporteds_for_user(expression, user_id) when is_map(expression) do
     fully_supporteds =
       ExpressionLinkages.list_parents_for_expression_and_user(expression.id, user_id)
       |> Enum.map(fn fs ->

@@ -16,19 +16,10 @@ defmodule VisionsUniteWeb.ExpressionComponent do
           </b>
         <% end %>
       <% else %>
-        <% # Else, this expression is seeking support, and could have multiple groups %>
-        <%= if Map.has_key?(assigns, :group) do %>
-          <%= link to: "/expression/#{@expression.id}" do %>
-            <b>
-              / <%= @group %> / <%= @expression.title %>
-            </b>
-          <% end %>
-        <% else %>
-          <%= link to: "/expression/#{@expression.id}" do %>
-            <b>
-              / <%= @expression.title %>
-            </b>
-          <% end %>
+        <%= link to: "/expression/#{@expression.id}" do %>
+          <b>
+            / <%= @expression.title %>
+          </b>
         <% end %>
       <% end %>
     </p>

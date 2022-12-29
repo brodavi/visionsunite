@@ -116,7 +116,7 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
     |> Expression.annotate_with_supports()
     |> Expression.annotate_with_group_data()
     |> Expression.annotate_with_linked_expressions()
-    |> Expression.annotate_with_fully_supporteds(user_id)
+    |> Expression.annotate_with_fully_supporteds_for_user(user_id)
   end
 
   defp filter_members_of(expressions, reject_expressions) do

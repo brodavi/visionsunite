@@ -121,7 +121,7 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
       |> Expression.annotate_with_supports()
       |> Expression.annotate_with_group_data()
       |> Expression.annotate_with_linked_expressions()
-      |> Expression.annotate_with_fully_supporteds(user_id)
+      |> Expression.annotate_with_fully_supporteds_for_user(user_id)
       |> Expression.annotate_with_seeking_support(user_id)
       |> Expression.annotate_subscribed(user_id)
 
@@ -147,7 +147,7 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
     children =
       children
       |> Enum.map(& Expressions.get_expression!(&1.expression_id))
-      |> Expression.annotate_with_fully_supporteds(user_id)
+      |> Expression.annotate_with_fully_supporteds_for_user(user_id)
 
     current_user = Accounts.get_user!(user_id)
 

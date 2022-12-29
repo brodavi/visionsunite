@@ -10,14 +10,18 @@
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
   </head>
   <body>
-    <header>
-      <section class="container">
-        <nav>
-          <%= render "_user_menu.html", assigns %>
-        </nav>
-        <h1><a href="/">Visions Unite</a></h1>
-      </section>
-    </header>
+    <%= if !Enum.member?([["vote"], ["submit_vote"]], @conn.path_info) do %>
+      <header>
+        <section class="container">
+          <nav>
+            <%= render "_user_menu.html", assigns %>
+          </nav>
+          <h1><a href="/">Visions Unite</a></h1>
+        </section>
+      </header>
+    <% else %>
+      <br/>
+    <% end %>
     <%= @inner_content %>
   </body>
 </html>

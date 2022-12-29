@@ -9,11 +9,6 @@ body {
   color: #dddddd;
 }
 
-div {
-  margin: 0.5rem;
-  padding: 0.5rem;
-}
-
 summary > span {
   padding: 0.5rem;
   background: #ee2222;
@@ -34,6 +29,7 @@ summary > span {
 
 .centered {
   text-align: center;
+  align-items: center;
 }
 
 nav > a {
@@ -68,10 +64,8 @@ button > a {
 
 button.small {
   line-height: 0.66rem;
-  height: 2rem;
   padding-left: 0.66rem;
   padding-right: 0.66rem;
-  font-size: 0.66rem;
 }
 
 code, pre {

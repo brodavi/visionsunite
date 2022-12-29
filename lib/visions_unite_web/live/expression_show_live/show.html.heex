@@ -43,23 +43,19 @@
 
 <%= if !@expression.seeking_support_from and @current_user do %>
   <div class="roww">
-    <%= if @expression.subscribed do %>
-      <button class="small" disabled>Join Conversation</button>
-    <% else %>
+    <%= if !@expression.subscribed do %>
       <button class="small" phx-click="set_follow" phx-value-follow={"true"} phx-value-expression_id={@expression.id}>Join Conversation</button>
     <% end %>
 
     <%= if @expression.subscribed do %>
       <button class="small" phx-click="set_follow" phx-value-follow={"false"} phx-value-expression_id={@expression.id}>Leave Conversation</button>
-    <% else %>
-      <button class="small" disabled>Leave Conversation</button>
     <% end %>
 
-    <button class="small">
-      <%= live_patch to: Routes.expression_show_show_path(@socket, :new, @expression.id) do %>
+    <%= live_patch to: Routes.expression_show_show_path(@socket, :new, @expression.id) do %>
+      <button class="small">
         Create a Linked Expression
-      <% end %>
-    </button>
+      </button>
+    <% end %>
   </div>
 <% end %>
 
