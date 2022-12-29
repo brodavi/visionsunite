@@ -10,7 +10,6 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
   alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
   alias VisionsUniteWeb.ExpressionComponent
-  alias VisionsUniteWeb.NavComponent
 
   @impl true
   def mount(params, session, socket) do
@@ -19,7 +18,7 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
 
     socket =
       socket
-      |> assign(:view_all, :false)
+      |> assign(:view_all, false)
       |> update_expression(expression_id, user_id)
 
     {:ok, socket}
@@ -56,7 +55,6 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
   end
 
   def handle_event("set_follow", %{"expression_id" => expression_id, "follow" => follow}, socket) do
-
     user_id = socket.assigns.current_user_id
 
     existing_subscription =
@@ -73,12 +71,11 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
 
     case {existing_subscription, existing_mute} do
       {nil, nil} ->
-        result =
-          ExpressionSubscriptions.create_expression_subscription(%{
-            expression_id: expression_id,
-            user_id: user_id,
-            subscribe: follow
-          })
+        ExpressionSubscriptions.create_expression_subscription(%{
+          expression_id: expression_id,
+          user_id: user_id,
+          subscribe: follow
+        })
 
       {existing_subscription, nil} ->
         ExpressionSubscriptions.update_expression_subscription(
@@ -138,15 +135,16 @@ defmodule VisionsUniteWeb.ExpressionShowLive.Show do
 
     children =
       case socket.assigns.view_all do
-        :true ->
+        true ->
           ExpressionLinkages.list_children_for_expression(expression.id)
-        :false ->
+
+        false ->
           ExpressionLinkages.list_supported_children_for_expression(expression.id)
       end
 
     children =
       children
-      |> Enum.map(& Expressions.get_expression!(&1.expression_id))
+      |> Enum.map(&Expressions.get_expression!(&1.expression_id))
       |> Expression.annotate_with_fully_supporteds_for_user(user_id)
 
     current_user = Accounts.get_user!(user_id)

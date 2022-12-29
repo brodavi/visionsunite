@@ -4,7 +4,6 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
   alias VisionsUnite.Expressions
   alias VisionsUnite.SeekingSupports
   alias VisionsUnite.Expressions.Expression
-  alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUniteWeb.ExpressionComponent
   alias VisionsUniteWeb.NavComponent
 
@@ -16,17 +15,16 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
       socket
       |> assign(:current_user_id, user_id)
 
-    seeking_support_from_user =
-      SeekingSupports.list_support_sought_for_user(user_id)
+    seeking_support_from_user = SeekingSupports.list_support_sought_for_user(user_id)
 
-    new_expressions =
-      Expressions.list_new_expressions_for_user(user_id)
+    new_expressions = Expressions.list_new_expressions_for_user(user_id)
 
     if Enum.count(seeking_support_from_user) !== 0 or
-      Enum.count(new_expressions) !== 0 do
+         Enum.count(new_expressions) !== 0 do
       socket =
         socket
         |> redirect(to: "/vote")
+
       {:ok, socket}
     else
       {:ok, socket}
@@ -59,7 +57,7 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
   end
 
   defp apply_action(socket, :index_important_messages, _params) do
-    important_messages = list_supported_messages(socket.assigns.current_user_id)
+    important_messages = list_supported_messages()
 
     socket
     |> assign(:page_title, "Listing Important Messages")
@@ -86,7 +84,7 @@ defmodule VisionsUniteWeb.FullySupportedExpressionsLive.Index do
     Expressions.list_vetted_groups_for_user(user_id)
   end
 
-  defp list_supported_messages(user_id) do
+  defp list_supported_messages() do
     Expressions.list_supported_messages()
     |> Expression.annotate_with_fully_supporteds()
   end

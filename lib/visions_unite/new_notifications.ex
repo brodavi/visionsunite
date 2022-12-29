@@ -7,8 +7,6 @@ defmodule VisionsUnite.NewNotifications do
 
   alias VisionsUnite.Repo
 
-  alias VisionsUnite.Expressions.Expression
-  alias VisionsUnite.Accounts.User
   alias VisionsUnite.NewNotifications.NewNotification
 
   @doc """
@@ -36,7 +34,8 @@ defmodule VisionsUnite.NewNotifications do
   def list_new_notifications_for_user(user_id) do
     query =
       from n in NewNotification,
-      where: n.user_id == ^user_id
+        where: n.user_id == ^user_id
+
     Repo.all(query)
   end
 
@@ -52,7 +51,8 @@ defmodule VisionsUnite.NewNotifications do
   def list_new_notifications_for_expression(expression_id) do
     query =
       from ep in NewNotification,
-      where: ep.expression_id == ^expression_id
+        where: ep.expression_id == ^expression_id
+
     Repo.all(query)
   end
 

@@ -144,10 +144,11 @@ defmodule VisionsUnite.ExpressionSubscriptions do
 
     query =
       from es in ExpressionSubscription,
-      join: fs in FullySupported,
-      on: fs.expression_id == es.expression_id,
-      where: es.user_id == ^user_id and
-    es.expression_id not in ^expression_linkage_ids
+        join: fs in FullySupported,
+        on: fs.expression_id == es.expression_id,
+        where:
+          es.user_id == ^user_id and
+            es.expression_id not in ^expression_linkage_ids
 
     Repo.all(query)
   end
@@ -177,7 +178,7 @@ defmodule VisionsUnite.ExpressionSubscriptions do
       %ExpressionSubscription{}
 
   """
-  def get_expression_subscription_for_expression_and_user(expression_id, nil),
+  def get_expression_subscription_for_expression_and_user(_expression_id, nil),
     do: %{subscribe: false}
 
   def get_expression_subscription_for_expression_and_user(expression_id, user_id) do

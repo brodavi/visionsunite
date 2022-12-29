@@ -11,6 +11,7 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
       socket
       |> assign(assigns)
       |> assign(:changeset, changeset)
+
     {:ok, socket}
   end
 
@@ -26,6 +27,7 @@ defmodule VisionsUniteWeb.ExpressionLive.FormComponent do
 
   def handle_event("save_group", %{"expression" => expression_params}, socket) do
     expression_params = Map.put(expression_params, "author_id", socket.assigns.current_user_id)
+
     case Expressions.create_expression(expression_params) do
       {:ok, _expression, _seeking_supports} ->
         {:noreply,

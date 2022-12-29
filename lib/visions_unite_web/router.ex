@@ -104,7 +104,6 @@ defmodule VisionsUniteWeb.Router do
     live "/my_subscribed_groups", FullySupportedExpressionsLive.Index, :my_subscribed_groups
     live "/my_subscribed_messages", FullySupportedExpressionsLive.Index, :my_subscribed_messages
 
-
     live "/all_expressions", AllExpressionsLive.Index, :index
   end
 
@@ -117,7 +116,6 @@ defmodule VisionsUniteWeb.Router do
     get "/users/confirm/:token", UserConfirmationController, :edit
     post "/users/confirm/:token", UserConfirmationController, :update
 
-    live "/expressions", ExpressionsSeekingMySupportLive.Index, :index
     live "/expression/:id", ExpressionShowLive.Show, :show
   end
 end

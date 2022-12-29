@@ -5,7 +5,6 @@ defmodule VisionsUniteWeb.MyExpressionsLive.Index do
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUniteWeb.ExpressionComponent
-  alias VisionsUniteWeb.NavComponent
 
   @impl true
   def mount(_params, session, socket) do

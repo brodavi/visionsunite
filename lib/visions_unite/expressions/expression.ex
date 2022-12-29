@@ -210,7 +210,7 @@ defmodule VisionsUnite.Expressions.Expression do
       })
     else
       Map.merge(expression, %{
-        subscribed: :false
+        subscribed: false
       })
     end
   end

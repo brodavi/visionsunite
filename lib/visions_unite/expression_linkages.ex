@@ -53,9 +53,9 @@ defmodule VisionsUnite.ExpressionLinkages do
   def list_supported_children_for_expression(expression_id) do
     query =
       from el in ExpressionLinkage,
-      join: fs in FullySupported,
-      on: fs.expression_id == el.expression_id,
-      where: el.link_id == ^expression_id
+        join: fs in FullySupported,
+        on: fs.expression_id == el.expression_id,
+        where: el.link_id == ^expression_id
 
     Repo.all(query)
   end
