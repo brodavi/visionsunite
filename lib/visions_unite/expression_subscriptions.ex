@@ -72,6 +72,8 @@ defmodule VisionsUnite.ExpressionSubscriptions do
       iex> list_expression_subscriptions_for_expression(%Expression{})
       [%ExpressionSubscription{}, ...]
   """
+  def list_expression_subscriptions_for_expression(nil), do: []
+
   def list_expression_subscriptions_for_expression(expression_id) when is_number(expression_id) do
     query =
       from es in ExpressionSubscription,

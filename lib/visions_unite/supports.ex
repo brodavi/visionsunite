@@ -12,6 +12,7 @@ defmodule VisionsUnite.Supports do
   alias VisionsUnite.Expressions
   alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUnite.FullySupporteds
+  alias VisionsUnite.NewNotifications
 
   @doc """
   Returns the list of support.
@@ -195,6 +196,26 @@ defmodule VisionsUnite.Supports do
             expression_id: expression.id,
             group_id: group_id
           })
+
+          # also, create "new notifications" for the subscribers of a group/expression that this expression is a child of
+          subscribers_ids =
+            case group_id do
+              nil ->
+                Accounts.list_users()
+                |> Enum.map(& &1.id)
+
+              _ ->
+                ExpressionSubscriptions.list_expression_subscriptions_for_expression(group_id)
+                |> Enum.map(& &1.user_id)
+            end
+
+          subscribers_ids
+          |> Enum.each(fn subscriber_id ->
+            NewNotifications.create_new_notification(%{
+              expression_id: expression.id,
+              user_id: subscriber_id
+            })
+          end)
 
           # then broadcast the support for all users
           VisionsUniteWeb.SharedPubSub.broadcast(
