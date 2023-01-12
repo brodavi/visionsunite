@@ -51,10 +51,12 @@
       <button class="small" phx-click="set_follow" phx-value-follow={"false"} phx-value-expression_id={@expression.id}>Leave Conversation</button>
     <% end %>
 
-    <%= live_patch to: Routes.expression_show_show_path(@socket, :new, @expression.id) do %>
-      <button class="small">
-        Create a Linked Expression
-      </button>
+    <%= if is_nil(@expression.parent) do %>
+      <%= live_patch to: Routes.expression_show_show_path(@socket, :new, @expression.id) do %>
+        <button class="small">
+          Create a new message for this group
+        </button>
+      <% end %>
     <% end %>
   </div>
 <% end %>
