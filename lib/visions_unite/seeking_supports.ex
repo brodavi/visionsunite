@@ -98,7 +98,7 @@ defmodule VisionsUnite.SeekingSupports do
       |> SeekingSupport.changeset(attrs)
       |> Repo.insert()
 
-    if !Map.has_key?(attrs, :for_group_id) do
+    if is_nil(attrs.for_group_id) do
       user = Accounts.get_user!(attrs.user_id)
       group = Expressions.get_expression!(attrs.expression_id)
       Mailer.deliver(Email.seeking_group_vetting(user, group))
