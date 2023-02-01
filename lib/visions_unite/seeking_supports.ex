@@ -11,9 +11,12 @@ defmodule VisionsUnite.SeekingSupports do
 
   alias VisionsUnite.Accounts
   alias VisionsUnite.ExpressionLinkages
+  alias VisionsUnite.Expressions
   alias VisionsUnite.Expressions.Expression
   alias VisionsUnite.ExpressionSubscriptions
   alias VisionsUnite.SeekingSupports.SeekingSupport
+  alias VisionsUnite.Mailer
+  alias VisionsUnite.Email
 
   @doc """
   Returns the seeking support for a given expression and user and group.
@@ -90,9 +93,23 @@ defmodule VisionsUnite.SeekingSupports do
 
   """
   def create_seeking_support(attrs \\ %{}) do
-    %SeekingSupport{}
-    |> SeekingSupport.changeset(attrs)
-    |> Repo.insert()
+    seeking_support =
+      %SeekingSupport{}
+      |> SeekingSupport.changeset(attrs)
+      |> Repo.insert()
+
+    if !Map.has_key?(attrs, :for_group_id) do
+      user = Accounts.get_user!(attrs.user_id)
+      group = Expressions.get_expression!(attrs.expression_id)
+      Mailer.deliver(Email.seeking_group_vetting(user, group))
+    else
+      user = Accounts.get_user!(attrs.user_id)
+      message = Expressions.get_expression!(attrs.expression_id)
+      group = Expressions.get_expression!(attrs.for_group_id)
+      Mailer.deliver(Email.seeking_message_support(user, message, group))
+    end
+
+    seeking_support
   end
 
   @doc """

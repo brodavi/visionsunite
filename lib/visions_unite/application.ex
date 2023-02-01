@@ -19,6 +19,7 @@ defmodule VisionsUnite.Application do
       # Start a worker by calling: VisionsUnite.Worker.start_link(arg)
       # {VisionsUnite.Worker, arg}
       {Task, &VisionsUnite.StartupTasks.startup/0},
+      {Finch, name: Swoosh.Finch},
       {Task.Supervisor, name: VisionsUnite.MySupervisor}
     ]
 
